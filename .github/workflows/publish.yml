@@ -49,8 +49,34 @@ jobs:
       - name: Validate package
         run: dart pub publish --dry-run
 
-  publish:
+  check-version:
     needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      published: ${{ steps.lookup.outputs.published }}
+
+    steps:
+      - name: Check whether the version is already published
+        id: lookup
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            "https://pub.dev/api/packages/morphnext/versions/${version}")"
+          case "${status}" in
+            200) echo "published=true" >> "${GITHUB_OUTPUT}" ;;
+            404) echo "published=false" >> "${GITHUB_OUTPUT}" ;;
+            *)
+              echo "pub.dev returned HTTP ${status}" >&2
+              exit 1
+              ;;
+          esac
+
+  publish:
+    needs: check-version
+    if: needs.check-version.outputs.published != 'true'
     permissions:
       id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@7654d458321ee25acccccfdb86cd48bd95768ff1 # v1.8.0
@@ -58,7 +84,11 @@ jobs:
       environment: pub.dev
 
   release:
-    needs: publish
+    needs: [check-version, publish]
+    if: >-
+      always() &&
+      needs.check-version.result == 'success' &&
+      (needs.publish.result == 'success' || needs.publish.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -68,9 +98,14 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create "${GITHUB_REF_NAME}"
-          --repo "${GITHUB_REPOSITORY}"
-          --verify-tag
-          --generate-notes
-          --title "${GITHUB_REF_NAME}"
+        shell: bash
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "GitHub release ${GITHUB_REF_NAME} already exists"
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --verify-tag \
+              --generate-notes \
+              --title "${GITHUB_REF_NAME}"
+          fi
