@@ -98,9 +98,14 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create "${GITHUB_REF_NAME}"
-          --repo "${GITHUB_REPOSITORY}"
-          --verify-tag
-          --generate-notes
-          --title "${GITHUB_REF_NAME}"
+        shell: bash
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "GitHub release ${GITHUB_REF_NAME} already exists"
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --verify-tag \
+              --generate-notes \
+              --title "${GITHUB_REF_NAME}"
+          fi
