@@ -13,6 +13,29 @@ permissions:
   contents: read
 
 jobs:
+  package-score:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - name: Install latest pana
+        run: dart pub global activate pana
+
+      - name: Require maximum pub points
+        run: dart pub global run pana . --exit-code-threshold 0
+
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 30
