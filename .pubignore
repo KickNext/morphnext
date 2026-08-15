@@ -1,0 +1,17 @@
+.dart_tool/
+**/.dart_tool/
+/.claude/
+/.github/
+/.playwright-cli/
+/assets/morphnext_hero_720p_60fps_full_cycle.webp
+.idea/
+**/.idea/
+build/
+**/build/
+coverage/
+docs/
+**/doc/api/
+**/pubspec.lock
+*.iml
+.flutter-plugins-dependencies
+**/.flutter-plugins-dependencies

@@ -1,0 +1,31 @@
+name: morphnext
+description: Interruptible vector morphing for Flutter.
+version: 0.5.0
+homepage: https://kicknext.github.io/morphnext/
+repository: https://github.com/KickNext/morphnext
+issue_tracker: https://github.com/KickNext/morphnext/issues
+
+topics:
+  - flutter
+  - icons
+  - animation
+  - morphing
+  - vector-graphics
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+  flutter: ">=3.32.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - pubspec.yaml

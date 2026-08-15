@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Interruptible vector morphing for Flutter.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="morphnext">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png?v=2">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png?v=2"/>
+
+  <title>morphnext — Flutter vector morphing</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --loader-background: #202124;
+      --loader-caption: #9aa0a6;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --loader-background: #f8f9fa;
+        --loader-caption: #5f6368;
+      }
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: var(--loader-background);
+    }
+
+    #flutter-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      background: var(--loader-background);
+      opacity: 1;
+      transition: opacity 180ms ease-out;
+    }
+
+    #flutter-loader.is-hidden {
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .loader-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .loader-message {
+      width: min(280px, calc(100vw - 48px));
+      min-height: 18px;
+      margin: 0;
+      color: var(--loader-caption);
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 18px;
+      letter-spacing: 0.04em;
+      text-align: center;
+      opacity: 1;
+      transform: translateY(0);
+      transition:
+        opacity 160ms ease,
+        transform 160ms ease;
+    }
+
+    .loader-message.is-changing {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    /* From Uiverse.io by andrew-manzyk */
+    .loader {
+      --main-color: #4387f4;
+      transform: scale(1); /* You can change the size */
+      z-index: 999;
+    }
+
+    .loader svg {
+      width: 100px;
+      height: 100px;
+    }
+
+    .loader svg path:first-child {
+      will-change: d;
+      fill: var(--main-color);
+      animation: morph 2s ease-in-out infinite;
+    }
+
+    .loader svg path:not(:first-child) {
+      fill: none;
+      stroke: var(--main-color);
+      stroke-width: 0;
+    }
+
+    .loader svg path:nth-child(2) {
+      animation: wave 2s linear infinite;
+      animation-delay: 1.7s;
+    }
+
+    .loader svg path:nth-child(3) {
+      animation: wave 2s linear infinite;
+      animation-delay: 0.3s;
+    }
+
+    .loader svg path:nth-child(4) {
+      animation: wave 2s linear infinite;
+      animation-delay: 1s;
+    }
+
+    @keyframes wave {
+      0% {
+        stroke-width: 0;
+        transform: scale(1) translateX(0px) translateY(0px);
+        opacity: 0;
+      }
+      10% {
+        stroke-width: 5;
+        transform: scale(1.05) translateX(-2.25px) translateY(-2.25px);
+        opacity: 0.3;
+      }
+      30% {
+        stroke-width: 10;
+        transform: scale(1.1) translateX(-4.5px) translateY(-4.5px);
+        opacity: 0;
+      }
+      100% {
+        stroke-width: 0;
+        transform: scale(1) translateX(0px) translateY(0px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes morph {
+      0% {
+        d: path(
+          "M10,20 C10,17.24 11.12,14.74 12.93,12.93 L12.93,12.93 C14.74,11.12 17.24,10 20,10 L80,10 C82.76,10 85.26,11.12 87.07,12.93 L87.07,12.93 C88.88,14.74 90,17.24 90,20 L90,80 C90,82.76 88.88,85.26 87.07,87.07 L87.07,87.07 C85.26,88.88 82.76,90 80,90 L20,90 C17.24,90 14.74,88.88 12.93,87.07 L12.93,87.07 C11.12,85.26 10,82.76 10,80Z M68,50 C68,45.02 65.98,40.52 62.72,37.27 L62.72,37.27 C59.47,34.01 54.97,32 50,32 L50,32 C45.02,32 40.52,34.01 37.27,37.27 L37.27,37.27 C34.01,40.52 32,45.02 32,50 L32,50 C32,54.97 34.01,59.47 37.27,62.72 L37.27,62.72 C40.52,65.98 45.02,68 50,68 L50,68 C54.97,68 59.47,65.98 62.72,62.72 L62.72,62.72 C65.98,59.47 68,54.97 68,50Z"
+        );
+      }
+      10% {
+        d: path(
+          "M10,20 C10,17.24 11.12,14.74 12.93,12.93 L12.93,12.93 C14.74,11.12 17.24,10 20,10 L80,10 C82.76,10 85.26,11.12 87.07,12.93 L87.07,12.93 C88.88,14.74 90,17.24 90,20 L90,80 C90,82.76 88.88,85.26 87.07,87.07 L87.07,87.07 C85.26,88.88 82.76,90 80,90 L20,90 C17.24,90 14.74,88.88 12.93,87.07 L12.93,87.07 C11.12,85.26 10,82.76 10,80Z M68,50 C68,45.02 65.98,40.52 62.72,37.27 L62.72,37.27 C59.47,34.01 54.97,32 50,32 L50,32 C45.02,32 40.52,34.01 37.27,37.27 L37.27,37.27 C34.01,40.52 32,45.02 32,50 L32,50 C32,54.97 34.01,59.47 37.27,62.72 L37.27,62.72 C40.52,65.98 45.02,68 50,68 L50,68 C54.97,68 59.47,65.98 62.72,62.72 L62.72,62.72 C65.98,59.47 68,54.97 68,50Z"
+        );
+      }
+      33% {
+        d: path(
+          "M10,37.57 C10,34.92 11.05,32.37 12.92,30.5 L30.5,12.92 C32.37,11.05 34.92,10 37.57,10 L62.42,10 C65.07,10 67.62,11.05 69.49,12.92 L87.07,30.5 C88.94,32.37 90,34.92 90,37.57 L90,62.42 C90,65.07 88.94,67.62 87.07,69.49 L69.49,87.07 C67.62,88.94 65.07,90 62.42,90 L37.57,90 C34.92,90 32.37,88.94 30.5,87.07 L12.92,69.49 C11.05,67.62 10,65.07 10,62.42Z M68,50 C68,49.12 67.66,48.24 66.99,47.57 L52.42,33 C51.75,32.33 50.87,32 50,32 L50,32 C49.12,32 48.24,32.33 47.57,33 L33,47.57 C32.33,48.24 32,49.12 32,50 L32,50 C32,50.87 32.33,51.75 33,52.42 L47.57,66.99 C48.24,67.66 49.12,68 50,68 L50,68 C50.87,68 51.75,67.66 52.42,66.99 L66.99,52.42 C67.66,51.75 68,50.87 68,50Z"
+        );
+      }
+      43% {
+        d: path(
+          "M10,37.57 C10,34.92 11.05,32.37 12.92,30.5 L30.5,12.92 C32.37,11.05 34.92,10 37.57,10 L62.42,10 C65.07,10 67.62,11.05 69.49,12.92 L87.07,30.5 C88.94,32.37 90,34.92 90,37.57 L90,62.42 C90,65.07 88.94,67.62 87.07,69.49 L69.49,87.07 C67.62,88.94 65.07,90 62.42,90 L37.57,90 C34.92,90 32.37,88.94 30.5,87.07 L12.92,69.49 C11.05,67.62 10,65.07 10,62.42Z M68,50 C68,49.12 67.66,48.24 66.99,47.57 L52.42,33 C51.75,32.33 50.87,32 50,32 L50,32 C49.12,32 48.24,32.33 47.57,33 L33,47.57 C32.33,48.24 32,49.12 32,50 L32,50 C32,50.87 32.33,51.75 33,52.42 L47.57,66.99 C48.24,67.66 49.12,68 50,68 L50,68 C50.87,68 51.75,67.66 52.42,66.99 L66.99,52.42 C67.66,51.75 68,50.87 68,50Z"
+        );
+      }
+      66% {
+        d: path(
+          "M10,50 C10,38.95 14.48,28.95 21.72,21.72 L21.72,21.72 C28.95,14.48 38.95,10 50,10 L50,10 C61.05,10 71.05,14.48 78.28,21.72 L78.28,21.72 C85.52,28.95 90,38.95 90,50 L90,50 C90,61.05 85.52,71.05 78.28,78.28 L78.28,78.28 C71.05,85.52 61.05,90 50,90 L50,90 C38.95,90 28.95,85.52 21.72,78.28 L21.72,78.28 C14.48,71.05 10,61.05 10,50Z M63.72,39.7 C63.72,38.75 63.34,37.9 62.71,37.28 L62.71,37.28 C62.09,36.65 61.24,36.27 60.29,36.27 L39.7,36.27 C38.75,36.27 37.9,36.65 37.28,37.28 L37.28,37.28 C36.65,37.9 36.27,38.75 36.27,39.7 L36.27,60.29 C36.27,61.24 36.65,62.09 37.28,62.71 L37.28,62.71 C37.9,63.34 38.75,63.72 39.7,63.72 L60.29,63.72 C61.24,63.72 62.09,63.34 62.71,62.71 L62.71,62.71 C63.34,62.09 63.72,61.24 63.72,60.29Z"
+        );
+      }
+      76% {
+        d: path(
+          "M10,50 C10,38.95 14.48,28.95 21.72,21.72 L21.72,21.72 C28.95,14.48 38.95,10 50,10 L50,10 C61.05,10 71.05,14.48 78.28,21.72 L78.28,21.72 C85.52,28.95 90,38.95 90,50 L90,50 C90,61.05 85.52,71.05 78.28,78.28 L78.28,78.28 C71.05,85.52 61.05,90 50,90 L50,90 C38.95,90 28.95,85.52 21.72,78.28 L21.72,78.28 C14.48,71.05 10,61.05 10,50Z M63.72,39.7 C63.72,38.75 63.34,37.9 62.71,37.28 L62.71,37.28 C62.09,36.65 61.24,36.27 60.29,36.27 L39.7,36.27 C38.75,36.27 37.9,36.65 37.28,37.28 L37.28,37.28 C36.65,37.9 36.27,38.75 36.27,39.7 L36.27,60.29 C36.27,61.24 36.65,62.09 37.28,62.71 L37.28,62.71 C37.9,63.34 38.75,63.72 39.7,63.72 L60.29,63.72 C61.24,63.72 62.09,63.34 62.71,62.71 L62.71,62.71 C63.34,62.09 63.72,61.24 63.72,60.29Z"
+        );
+      }
+      100% {
+        d: path(
+          "M10,20 C10,17.24 11.12,14.74 12.93,12.93 L12.93,12.93 C14.74,11.12 17.24,10 20,10 L80,10 C82.76,10 85.26,11.12 87.07,12.93 L87.07,12.93 C88.88,14.74 90,17.24 90,20 L90,80 C90,82.76 88.88,85.26 87.07,87.07 L87.07,87.07 C85.26,88.88 82.76,90 80,90 L20,90 C17.24,90 14.74,88.88 12.93,87.07 L12.93,87.07 C11.12,85.26 10,82.76 10,80Z M68,50 C68,45.02 65.98,40.52 62.72,37.27 L62.72,37.27 C59.47,34.01 54.97,32 50,32 L50,32 C45.02,32 40.52,34.01 37.27,37.27 L37.27,37.27 C34.01,40.52 32,45.02 32,50 L32,50 C32,54.97 34.01,59.47 37.27,62.72 L37.27,62.72 C40.52,65.98 45.02,68 50,68 L50,68 C54.97,68 59.47,65.98 62.72,62.72 L62.72,62.72 C65.98,59.47 68,54.97 68,50Z"
+        );
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #flutter-loader {
+        transition: none;
+      }
+
+      .loader-message {
+        transition: none;
+      }
+
+      .loader svg path {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="flutter-loader" role="status" aria-label="Loading morphnext">
+    <div class="loader-stage">
+      <div class="loader">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+          <path d="M10,20 C10,17.24 11.12,14.74 12.93,12.93 L12.93,12.93 C14.74,11.12 17.24,10 20,10 L80,10 C82.76,10 85.26,11.12 87.07,12.93 L87.07,12.93 C88.88,14.74 90,17.24 90,20 L90,80 C90,82.76 88.88,85.26 87.07,87.07 L87.07,87.07 C85.26,88.88 82.76,90 80,90 L20,90 C17.24,90 14.74,88.88 12.93,87.07 L12.93,87.07 C11.12,85.26 10,82.76 10,80Z M68,50 C68,45.02 65.98,40.52 62.72,37.27 L62.72,37.27 C59.47,34.01 54.97,32 50,32 L50,32 C45.02,32 40.52,34.01 37.27,37.27 L37.27,37.27 C34.01,40.52 32,45.02 32,50 L32,50 C32,54.97 34.01,59.47 37.27,62.72 L37.27,62.72 C40.52,65.98 45.02,68 50,68 L50,68 C54.97,68 59.47,65.98 62.72,62.72 L62.72,62.72 C65.98,59.47 68,54.97 68,50Z" />
+          <path d="M10,20 C10,17.24 11.12,14.74 12.93,12.93 L12.93,12.93 C14.74,11.12 17.24,10 20,10 L80,10 C82.76,10 85.26,11.12 87.07,12.93 L87.07,12.93 C88.88,14.74 90,17.24 90,20 L90,80 C90,82.76 88.88,85.26 87.07,87.07 L87.07,87.07 C85.26,88.88 82.76,90 80,90 L20,90 C17.24,90 14.74,88.88 12.93,87.07 L12.93,87.07 C11.12,85.26 10,82.76 10,80Z" />
+          <path d="M10,37.57 C10,34.92 11.05,32.37 12.92,30.5 L30.5,12.92 C32.37,11.05 34.92,10 37.57,10 L62.42,10 C65.07,10 67.62,11.05 69.49,12.92 L87.07,30.5 C88.94,32.37 90,34.92 90,37.57 L90,62.42 C90,65.07 88.94,67.62 87.07,69.49 L69.49,87.07 C67.62,88.94 65.07,90 62.42,90 L37.57,90 C34.92,90 32.37,88.94 30.5,87.07 L12.92,69.49 C11.05,67.62 10,65.07 10,62.42Z" />
+          <path d="M10,50 C10,38.95 14.48,28.95 21.72,21.72 L21.72,21.72 C28.95,14.48 38.95,10 50,10 L50,10 C61.05,10 71.05,14.48 78.28,21.72 L78.28,21.72 C85.52,28.95 90,38.95 90,50 L90,50 C90,61.05 85.52,71.05 78.28,78.28 L78.28,78.28 C71.05,85.52 61.05,90 50,90 L50,90 C38.95,90 28.95,85.52 21.72,78.28 L21.72,78.28 C14.48,71.05 10,61.05 10,50Z" />
+        </svg>
+      </div>
+      <p id="loader-message" class="loader-message" aria-hidden="true">Worth the wait.</p>
+    </div>
+  </div>
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

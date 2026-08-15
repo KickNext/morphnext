@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - name: Install package dependencies
+        run: flutter pub get
+
+      - name: Install example dependencies
+        run: flutter pub get
+        working-directory: example
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Enforce coverage
+        run: |
+          awk -F: -v minimum=0.90 '
+            /^SF:/ {
+              source = substr($0, 4)
+              gsub(/\\/, "/", source)
+              in_lib = source ~ /(^|\/)lib\//
+            }
+            in_lib && /^LF:/ { total += $2 }
+            in_lib && /^LH:/ { covered += $2 }
+            END {
+              if (total == 0) {
+                print "Coverage report contains no executable lib lines" > "/dev/stderr"
+                exit 1
+              }
+              ratio = covered / total
+              printf "Coverage: %d/%d lines (%.2f%%)\n", covered, total, 100 * ratio
+              exit ratio < minimum
+            }
+          ' coverage/lcov.info
+
+      - name: Install Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v2
+
+      - name: Run browser smoke test
+        run: flutter test --platform chrome test/web_smoke_test.dart
+        env:
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
+
+      - name: Test example
+        run: flutter test
+        working-directory: example
+
+      - name: Build example for web
+        run: flutter build web --release
+        working-directory: example
+
+      - name: Validate package
+        run: dart pub publish --dry-run
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: morphnext-failure-${{ github.run_attempt }}
+          path: |
+            test/failures/
+          if-no-files-found: ignore
+          retention-days: 14
