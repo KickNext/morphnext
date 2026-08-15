@@ -1,5 +1,10 @@
 # morphnext
 
+[![CI](https://github.com/KickNext/morphnext/actions/workflows/ci.yml/badge.svg)](https://github.com/KickNext/morphnext/actions/workflows/ci.yml)
+[![Web demo](https://github.com/KickNext/morphnext/actions/workflows/pages.yml/badge.svg)](https://kicknext.github.io/morphnext/)
+[![pub.dev](https://img.shields.io/pub/v/morphnext.svg)](https://pub.dev/packages/morphnext)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Morph into what’s next.**
 
 morphnext turns bundled Flutter `IconData` glyphs into interruptible,
