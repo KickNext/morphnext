@@ -8,6 +8,8 @@ import 'binary_reader.dart';
 import 'font_selection.dart';
 import 'open_type_font.dart';
 
+const _maximumCachedFonts = 32;
+const _maximumRetainedFontBytes = 32 << 20;
 const _maximumCachedGlyphs = 256;
 const _maximumRetainedGlyphBytes = 8 << 20;
 typedef _GlyphCacheKey = (IconData, String, MorphFontSelection);
@@ -18,8 +20,11 @@ final class FontAssetResolver {
 
   final AssetBundle bundle;
   Future<List<_ManifestFamily>>? _manifest;
-  final Map<String, Future<OpenTypeFont>> _fonts =
-      <String, Future<OpenTypeFont>>{};
+  final SizedLruCache<String, Future<OpenTypeFont>> _fonts =
+      SizedLruCache<String, Future<OpenTypeFont>>(
+        maximumSize: _maximumCachedFonts,
+        maximumSizeBytes: _maximumRetainedFontBytes,
+      );
   final SizedLruCache<_GlyphCacheKey, Future<GlyphOutline>> _glyphs =
       SizedLruCache<_GlyphCacheKey, Future<GlyphOutline>>(
         maximumSize: _maximumCachedGlyphs,
@@ -166,17 +171,17 @@ final class FontAssetResolver {
   }
 
   Future<OpenTypeFont> _loadFont(String assetKey) async {
-    var future = _fonts[assetKey];
+    var future = _fonts.get(assetKey);
     if (future == null) {
       future = _readFont(assetKey);
-      _fonts[assetKey] = future;
+      _fonts.put(assetKey, future);
     }
     try {
-      return await future;
+      final font = await future;
+      _fonts.updateSizeIfSame(assetKey, future, font.bytes.lengthInBytes);
+      return font;
     } catch (_) {
-      if (identical(_fonts[assetKey], future)) {
-        _fonts.remove(assetKey);
-      }
+      _fonts.removeIfSame(assetKey, future);
       rethrow;
     }
   }
