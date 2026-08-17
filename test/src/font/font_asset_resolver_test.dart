@@ -98,15 +98,16 @@ void main() {
   test('parsed font assets are evicted by the bounded cache', () async {
     const retainedFontCount = 32;
     final font = TestFontBuilder.trueType();
+    final manifest = <String, List<String>>{};
+    final assets = <String, Uint8List>{};
+    for (var index = 0; index <= retainedFontCount; index++) {
+      final asset = 'assets/font_$index.ttf';
+      manifest['Family$index'] = <String>[asset];
+      assets[asset] = font;
+    }
     final bundle = TestAssetBundle.fonts(
-      manifest: <String, List<String>>{
-        for (var index = 0; index <= retainedFontCount; index++)
-          'Family$index': <String>['assets/font_$index.ttf'],
-      },
-      assets: <String, Uint8List>{
-        for (var index = 0; index <= retainedFontCount; index++)
-          'assets/font_$index.ttf': font,
-      },
+      manifest: manifest,
+      assets: assets,
     );
     final resolver = FontAssetResolver(bundle);
 
