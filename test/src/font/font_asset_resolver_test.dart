@@ -95,6 +95,41 @@ void main() {
     expect(bundle.loadCount('assets/icons.ttf'), 1);
   });
 
+  test('parsed font assets are evicted by the bounded cache', () async {
+    const retainedFontCount = 32;
+    final font = TestFontBuilder.trueType();
+    final bundle = TestAssetBundle.fonts(
+      manifest: <String, List<String>>{
+        for (var index = 0; index <= retainedFontCount; index++)
+          'Family$index': <String>['assets/font_$index.ttf'],
+      },
+      assets: <String, Uint8List>{
+        for (var index = 0; index <= retainedFontCount; index++)
+          'assets/font_$index.ttf': font,
+      },
+    );
+    final resolver = FontAssetResolver(bundle);
+
+    for (var index = 0; index <= retainedFontCount; index++) {
+      await resolver.resolve(
+        IconData(
+          TestFontBuilder.quadraticCodePoint,
+          fontFamily: 'Family$index',
+        ),
+      );
+    }
+    expect(bundle.loadCount('assets/font_0.ttf'), 1);
+
+    await resolver.resolve(
+      const IconData(
+        TestFontBuilder.compositeCodePoint,
+        fontFamily: 'Family0',
+      ),
+    );
+
+    expect(bundle.loadCount('assets/font_0.ttf'), 2);
+  });
+
   test('unique glyph streams evict old decoded outlines', () async {
     const glyphCount = 300;
     final resolver = FontAssetResolver(aliasedFixtureBundle(glyphCount));
