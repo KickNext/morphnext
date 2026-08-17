@@ -105,10 +105,7 @@ void main() {
       manifest['Family$index'] = <String>[asset];
       assets[asset] = font;
     }
-    final bundle = TestAssetBundle.fonts(
-      manifest: manifest,
-      assets: assets,
-    );
+    final bundle = TestAssetBundle.fonts(manifest: manifest, assets: assets);
     final resolver = FontAssetResolver(bundle);
 
     for (var index = 0; index <= retainedFontCount; index++) {
@@ -122,10 +119,7 @@ void main() {
     expect(bundle.loadCount('assets/font_0.ttf'), 1);
 
     await resolver.resolve(
-      const IconData(
-        TestFontBuilder.compositeCodePoint,
-        fontFamily: 'Family0',
-      ),
+      const IconData(TestFontBuilder.compositeCodePoint, fontFamily: 'Family0'),
     );
 
     expect(bundle.loadCount('assets/font_0.ttf'), 2);
