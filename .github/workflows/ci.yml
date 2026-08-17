@@ -61,7 +61,9 @@ jobs:
         working-directory: example
 
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: |
+          dart format .
+          git diff --exit-code
 
       - name: Analyze
         run: flutter analyze --fatal-infos --fatal-warnings
