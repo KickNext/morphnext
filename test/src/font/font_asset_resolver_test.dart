@@ -97,6 +97,41 @@ void main() {
 
   test('parsed font assets are evicted by the bounded cache', () async {
     const retainedFontCount = 32;
+    const icons = <IconData>[
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family0'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family1'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family2'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family3'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family4'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family5'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family6'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family7'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family8'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family9'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family10'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family11'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family12'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family13'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family14'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family15'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family16'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family17'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family18'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family19'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family20'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family21'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family22'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family23'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family24'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family25'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family26'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family27'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family28'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family29'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family30'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family31'),
+      IconData(TestFontBuilder.quadraticCodePoint, fontFamily: 'Family32'),
+    ];
     final font = TestFontBuilder.trueType();
     final manifest = <String, List<String>>{};
     final assets = <String, Uint8List>{};
@@ -108,13 +143,8 @@ void main() {
     final bundle = TestAssetBundle.fonts(manifest: manifest, assets: assets);
     final resolver = FontAssetResolver(bundle);
 
-    for (var index = 0; index <= retainedFontCount; index++) {
-      await resolver.resolve(
-        IconData(
-          TestFontBuilder.quadraticCodePoint,
-          fontFamily: 'Family$index',
-        ),
-      );
+    for (final icon in icons) {
+      await resolver.resolve(icon);
     }
     expect(bundle.loadCount('assets/font_0.ttf'), 1);
 
