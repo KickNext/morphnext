@@ -46,4 +46,21 @@ void main() {
     expect(cache.get(2), same(second));
     expect(cache.get(3), isNull);
   });
+
+  test('an already-sized oversized value leaves the cache unchanged', () {
+    final cache = SizedLruCache<int, Object>(
+      maximumSize: 2,
+      maximumSizeBytes: 8,
+    );
+    final resident = Object();
+    final oversized = Object();
+    cache.putSized(1, resident, 8);
+
+    expect(cache.putSized(2, oversized, 9), isFalse);
+
+    expect(cache.length, 1);
+    expect(cache.currentSizeBytes, 8);
+    expect(cache.get(1), same(resident));
+    expect(cache.get(2), isNull);
+  });
 }
