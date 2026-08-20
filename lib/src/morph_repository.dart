@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 
+import 'cache/morph_cache.dart';
 import 'cache/sized_lru_cache.dart';
 import 'font/font_asset_resolver.dart';
 import 'font/font_selection.dart';
@@ -11,17 +12,17 @@ import 'geometry/shape.dart';
 
 const _maximumCachedShapes = 256;
 const _maximumRetainedShapeBytes = 8 << 20;
-const _maximumCachedPlans = 128;
-const _maximumRetainedPlanBytes = 16 << 20;
 const _minimumContourPointCount = 64;
 const _maximumContourPointCount = 2048;
 const _samplesPerCubicSegment = 16;
 typedef _ShapeCacheKey = (IconData, TextDirection, MorphFontSelection);
-typedef _PlanCacheKey = (IconData, IconData, TextDirection, MorphFontSelection);
 
 /// Extracts, normalizes, and caches morph geometry for one asset bundle.
 final class MorphRepository {
-  MorphRepository._(this.resolver);
+  MorphRepository._(AssetBundle bundle)
+    : _bundle = bundle,
+      resolver = FontAssetResolver(bundle),
+      _cacheGeneration = MorphCacheStore.instance.generation;
 
   static final Expando<MorphRepository> _repositories =
       Expando<MorphRepository>('morphnext repositories');
@@ -29,28 +30,25 @@ final class MorphRepository {
   static MorphRepository forBundle(AssetBundle bundle) {
     final existing = _repositories[bundle];
     if (existing != null) return existing;
-    final repository = MorphRepository._(FontAssetResolver(bundle));
+    final repository = MorphRepository._(bundle);
     _repositories[bundle] = repository;
     return repository;
   }
 
+  final AssetBundle _bundle;
   final FontAssetResolver resolver;
+  int _cacheGeneration;
   final SizedLruCache<_ShapeCacheKey, Future<MorphShape>> _shapes =
       SizedLruCache<_ShapeCacheKey, Future<MorphShape>>(
         maximumSize: _maximumCachedShapes,
         maximumSizeBytes: _maximumRetainedShapeBytes,
       );
-  final SizedLruCache<_PlanCacheKey, Future<MorphPlan>> _plans =
-      SizedLruCache<_PlanCacheKey, Future<MorphPlan>>(
-        maximumSize: _maximumCachedPlans,
-        maximumSizeBytes: _maximumRetainedPlanBytes,
-      );
-
   Future<MorphShape> shapeFor(
     IconData icon,
     TextDirection direction, [
     MorphFontSelection fontSelection = defaultMorphFontSelection,
   ]) {
+    _synchronizeCacheGeneration();
     final key = (icon, direction, fontSelection);
     final existing = _shapes.get(key);
     if (existing != null) return existing;
@@ -75,26 +73,15 @@ final class MorphRepository {
     TextDirection direction, [
     MorphFontSelection fontSelection = defaultMorphFontSelection,
   ]) {
-    final key = (from, to, direction, fontSelection);
-    final existing = _plans.get(key);
-    if (existing != null) return existing;
-    late final Future<MorphPlan> future;
-    future = () async {
-      try {
-        final shapes = await Future.wait<MorphShape>(<Future<MorphShape>>[
-          shapeFor(from, direction, fontSelection),
-          shapeFor(to, direction, fontSelection),
-        ]);
-        final plan = buildMorphPlan(shapes[0], shapes[1]);
-        _plans.updateSizeIfSame(key, future, _planBytes(plan));
-        return plan;
-      } catch (_) {
-        _plans.removeIfSame(key, future);
-        rethrow;
-      }
-    }();
-    _plans.put(key, future);
-    return future;
+    _synchronizeCacheGeneration();
+    final key = _MorphCacheKey(_bundle, from, to, direction, fontSelection);
+    return MorphCacheStore.instance.load(key, () async {
+      final shapes = await Future.wait<MorphShape>(<Future<MorphShape>>[
+        shapeFor(from, direction, fontSelection),
+        shapeFor(to, direction, fontSelection),
+      ]);
+      return buildMorphPlan(shapes[0], shapes[1]);
+    }, _planBytes);
   }
 
   Future<MorphPlan> planFromShape(
@@ -102,8 +89,18 @@ final class MorphRepository {
     IconData to,
     TextDirection direction, [
     MorphFontSelection fontSelection = defaultMorphFontSelection,
-  ]) async =>
-      buildMorphPlan(source, await shapeFor(to, direction, fontSelection));
+  ]) async {
+    _synchronizeCacheGeneration();
+    return buildMorphPlan(source, await shapeFor(to, direction, fontSelection));
+  }
+
+  void _synchronizeCacheGeneration() {
+    final generation = MorphCacheStore.instance.generation;
+    if (_cacheGeneration == generation) return;
+    _cacheGeneration = generation;
+    _shapes.clear();
+    resolver.clear();
+  }
 
   Future<MorphShape> _createShape(
     IconData icon,
@@ -186,3 +183,32 @@ int _planBytes(MorphPlan plan) => plan.items.fold<int>(
       item.targetInSourceFrame.lengthInBytes +
       item.orientedTarget.lengthInBytes,
 );
+
+final class _MorphCacheKey {
+  const _MorphCacheKey(
+    this.bundle,
+    this.from,
+    this.to,
+    this.direction,
+    this.fontSelection,
+  );
+
+  final AssetBundle bundle;
+  final IconData from;
+  final IconData to;
+  final TextDirection direction;
+  final MorphFontSelection fontSelection;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _MorphCacheKey &&
+      identical(bundle, other.bundle) &&
+      from == other.from &&
+      to == other.to &&
+      direction == other.direction &&
+      fontSelection == other.fontSelection;
+
+  @override
+  int get hashCode =>
+      Object.hash(identityHashCode(bundle), from, to, direction, fontSelection);
+}

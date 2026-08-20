@@ -91,6 +91,32 @@ semantic image node; leave it null for a decorative icon. When
 Fonts and morph plans are loaded lazily and cached with bounded memory use.
 Animation repaints directly without rebuilding the widget on every frame.
 
+The application-wide morph cache has limits similar to Flutter's image cache.
+It is shared by morphnext widgets in the current Dart isolate. The defaults
+work without configuration. Applications that need explicit limits can set
+both before `runApp`:
+
+```dart
+MorphCache.configure(
+  maxMorphs: 100,
+  maxBytes: 16 * 1024 * 1024,
+);
+```
+
+`maxMorphs` counts completed morphs retained for reuse. `A → B` and `B →
+A`, LTR and RTL, and different font parameters are separate morphs. One-off
+morphs from an interrupted intermediate shape are not retained. A morph larger
+than `maxBytes` is still built and used by the current animation, but it is not
+cached and does not evict existing entries.
+
+`currentMorphs` and `currentBytes` expose the current cache statistics. Pending
+morphs are not counted. `currentBytes` is the size of vector buffers owned by
+retained morphs; it excludes decoded fonts, sampled source shapes, Dart object
+overhead, and memory owned by Flutter. Use `MorphCache.clear()` to empty the
+cache, `MorphCache.disable()` to empty and disable it, and `MorphCache.reset()`
+to restore `defaultMaxMorphs` and `defaultMaxBytes`. `configure` throws
+`ArgumentError` unless both limits are positive.
+
 ## Limitations
 
 morphnext preserves filled contour topology and keeps holes open, but arbitrary

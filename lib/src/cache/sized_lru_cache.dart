@@ -12,6 +12,13 @@ final class SizedLruCache<K extends Object, V extends Object> {
 
   /// The maximum number of retained bytes.
   final int maximumSizeBytes;
+
+  /// The number of currently retained entries.
+  int get length => _entries.length;
+
+  /// The combined recorded size of all retained entries.
+  int get currentSizeBytes => _currentSizeBytes;
+
   final LinkedHashMap<K, _SizedEntry<V>> _entries =
       LinkedHashMap<K, _SizedEntry<V>>();
   var _currentSizeBytes = 0;
@@ -30,6 +37,30 @@ final class SizedLruCache<K extends Object, V extends Object> {
     if (maximumSize == 0 || maximumSizeBytes == 0) return;
     _entries[key] = _SizedEntry<V>(value, 0);
     _trim();
+  }
+
+  /// Inserts an already-sized [value].
+  ///
+  /// Returns false without changing the cache when [sizeBytes] exceeds the
+  /// byte limit or caching is disabled.
+  bool putSized(K key, V value, int sizeBytes) {
+    assert(sizeBytes >= 0);
+    if (maximumSize == 0 ||
+        maximumSizeBytes == 0 ||
+        sizeBytes > maximumSizeBytes) {
+      return false;
+    }
+    _remove(key);
+    _entries[key] = _SizedEntry<V>(value, sizeBytes);
+    _currentSizeBytes += sizeBytes;
+    _trim();
+    return true;
+  }
+
+  /// Removes every retained entry.
+  void clear() {
+    _entries.clear();
+    _currentSizeBytes = 0;
   }
 
   /// Records [sizeBytes] if [value] is still the value retained for [key].

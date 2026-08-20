@@ -26,6 +26,13 @@ final class FontAssetResolver {
         maximumSizeBytes: _maximumRetainedGlyphBytes,
       );
 
+  /// Clears all manifest, font, and glyph data retained by this resolver.
+  void clear() {
+    _manifest = null;
+    _fonts.clear();
+    _glyphs.clear();
+  }
+
   Future<GlyphOutline> resolve(
     IconData icon, [
     MorphFontSelection selection = defaultMorphFontSelection,

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+- Add configurable application-wide morph cache limits, public cache statistics,
+  clearing, disabling, and resetting.
+
 ## 0.5.0
 
 - Add controlled `MorphIcon` and interruptible `AnimatedMorphIcon` widgets.
