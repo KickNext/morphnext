@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0
 
 - Add configurable application-wide morph cache limits, public cache statistics,
   clearing, disabling, and resetting.

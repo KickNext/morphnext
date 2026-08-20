@@ -1,6 +1,6 @@
 name: morphnext
 description: Interruptible, spring-driven vector icon morphing for Flutter without per-pair animation assets.
-version: 0.5.0
+version: 0.6.0
 homepage: https://kicknext.github.io/morphnext/
 repository: https://github.com/KickNext/morphnext
 issue_tracker: https://github.com/KickNext/morphnext/issues
