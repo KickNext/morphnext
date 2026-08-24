@@ -3,8 +3,22 @@ import 'dart:typed_data';
 import '../geometry/shape.dart';
 import 'binary_reader.dart';
 import 'cff_outline.dart';
-import 'font_selection.dart';
 import 'true_type_outline.dart';
+
+/// Variable-font axes that affect a decoded outline.
+typedef FontVariationSelection = ({
+  double? fill,
+  double? weight,
+  double? grade,
+  double? opticalSize,
+});
+
+const FontVariationSelection defaultFontVariationSelection = (
+  fill: null,
+  weight: null,
+  grade: null,
+  opticalSize: null,
+);
 
 const _trueTypeScaler = 0x00010000;
 const _openTypeScaler = 0x4f54544f;
@@ -339,7 +353,7 @@ final class OpenTypeFont {
   /// Decodes the outline mapped from [codePoint].
   GlyphOutline glyphForCodePoint(
     int codePoint, [
-    MorphFontSelection selection = defaultMorphFontSelection,
+    FontVariationSelection selection = defaultFontVariationSelection,
   ]) {
     final glyphId = glyphIndexForCodePoint(codePoint);
     if (glyphId == null) {
@@ -357,7 +371,7 @@ final class OpenTypeFont {
     };
   }
 
-  Map<String, double> _variationCoordinates(MorphFontSelection selection) {
+  Map<String, double> _variationCoordinates(FontVariationSelection selection) {
     final requested = <String, double?>{
       'FILL': selection.fill,
       'wght': selection.weight,

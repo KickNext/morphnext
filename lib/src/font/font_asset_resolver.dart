@@ -81,7 +81,12 @@ final class FontAssetResolver {
           try {
             final font = await _loadFont(face.asset);
             if (!font.containsCodePoint(icon.codePoint)) continue;
-            return font.glyphForCodePoint(icon.codePoint, selection);
+            return font.glyphForCodePoint(icon.codePoint, (
+              fill: selection.fill,
+              weight: selection.weight,
+              grade: selection.grade,
+              opticalSize: selection.opticalSize,
+            ));
           } catch (error) {
             lastFailure = FontDataException(
               'Failed to read bundled font face',

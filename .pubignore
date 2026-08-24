@@ -15,3 +15,7 @@ docs/
 *.iml
 .flutter-plugins-dependencies
 **/.flutter-plugins-dependencies
+/example/*
+!/example/example.dart
+/tool/
+/test/tool/

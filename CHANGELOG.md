@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.1
+
+- Update the web showcase to Lucide 3.1.17.
+- Generate its searchable icon catalog in CI and deployment workflows for
+  reliable icon package updates.
+- Keep the pub.dev package compact by shipping the focused example without the
+  full web showcase sources.
+
 ## 0.6.0
 
 - Add configurable application-wide morph cache limits, public cache statistics,
