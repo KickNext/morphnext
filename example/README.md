@@ -14,12 +14,16 @@ flutter run
 ```
 
 The showcase includes an endless random hero and an interactive constructor at
-`/playground`. Its checked-in icon catalog is generated for search and does not
-affect applications that depend on `morphnext`.
+`/playground`. Its icon catalog is generated locally for search and does not
+affect applications that depend on `morphnext`. The generated file is ignored
+by Git.
 
-Run `flutter pub get` in this directory, then refresh the checked-in catalog
-from the repository root after upgrading Flutter or an icon dependency:
+Run `flutter pub get` in both the repository root and this directory, then
+generate the catalog from the repository root before analyzing, testing, or
+building the showcase:
 
 ```console
+flutter pub get
+flutter pub get --directory example
 dart run tool/generate_example_icon_catalog.dart
 ```

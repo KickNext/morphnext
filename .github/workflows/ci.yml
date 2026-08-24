@@ -30,6 +30,16 @@ jobs:
           cache: true
           pub-cache: true
 
+      - name: Install package dependencies
+        run: flutter pub get
+
+      - name: Install example dependencies
+        run: flutter pub get
+        working-directory: example
+
+      - name: Generate example icon catalog
+        run: dart run tool/generate_example_icon_catalog.dart
+
       - name: Install latest pana
         run: dart pub global activate pana
 
@@ -59,6 +69,9 @@ jobs:
       - name: Install example dependencies
         run: flutter pub get
         working-directory: example
+
+      - name: Generate example icon catalog
+        run: dart run tool/generate_example_icon_catalog.dart
 
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed .

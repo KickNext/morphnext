@@ -132,7 +132,7 @@ String renderIconCatalog(
   Set<GeneratedIcon> heroUnsafeIcons = const <GeneratedIcon>{},
 }) {
   final output = StringBuffer()
-    ..writeln('// GENERATED CODE - DO NOT MODIFY BY HAND.')
+    ..writeln('// GENERATED CODE - DO NOT MODIFY BY HAND OR COMMIT.')
     ..writeln('// Run: dart run tool/generate_example_icon_catalog.dart')
     ..writeln()
     ..writeln("part of 'icon_catalog.dart';")

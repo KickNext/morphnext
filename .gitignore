@@ -32,5 +32,6 @@ migrate_working_dir/
 /build/
 /coverage/
 /example/test/failures/
+/example/lib/icon_catalog.g.dart
 .superpowers/
 .worktrees/

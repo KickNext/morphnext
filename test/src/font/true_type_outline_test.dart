@@ -11,13 +11,7 @@ void main() {
     final base = font.glyphForCodePoint(TestFontBuilder.quadraticCodePoint);
     final varied = font.glyphForCodePoint(
       TestFontBuilder.quadraticCodePoint,
-      const (
-        fill: null,
-        weight: 650,
-        grade: null,
-        opticalSize: null,
-        fontWeight: null,
-      ),
+      const (fill: null, weight: 650, grade: null, opticalSize: null),
     );
 
     expect(font.variationAxes.keys, contains('wght'));
@@ -35,13 +29,7 @@ void main() {
     final base = font.glyphForCodePoint(TestFontBuilder.compositeCodePoint);
     final varied = font.glyphForCodePoint(
       TestFontBuilder.compositeCodePoint,
-      const (
-        fill: null,
-        weight: 650.0,
-        grade: null,
-        opticalSize: null,
-        fontWeight: null,
-      ),
+      const (fill: null, weight: 650.0, grade: null, opticalSize: null),
     );
 
     expect(cubicBounds(varied.contours).$1, cubicBounds(base.contours).$1 + 10);
