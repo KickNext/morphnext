@@ -18,7 +18,7 @@ dependencies:
   go_router: ^17.5.0
   google_fonts: ^8.1.0
   http: ^1.6.0
-  lucide_icons_flutter: ^3.1.15
+  lucide_icons_flutter: ^3.1.17
   morphnext:
     path: ..
   reel_text: ^0.4.4
