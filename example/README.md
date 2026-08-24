@@ -6,7 +6,7 @@
 flutter run -t example.dart
 ```
 
-`lib/main.dart` is the full marketing showcase built for GitHub Pages. Run it
+`lib/main.dart` is the full web showcase built for GitHub Pages. Run it
 on any Flutter target with:
 
 ```console

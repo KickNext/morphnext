@@ -17,3 +17,5 @@ docs/
 **/.flutter-plugins-dependencies
 /example/*
 !/example/example.dart
+/tool/
+/test/tool/
