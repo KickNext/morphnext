@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 import '../font/font_selection.dart';
+import '../morph_fallback_details.dart';
 import '../geometry/morph_plan.dart';
 import '../morph_repository.dart';
 import '../rendering/morph_painter.dart';
@@ -32,6 +33,7 @@ final class MorphIcon extends StatefulWidget {
     this.applyTextScaling,
     this.blendMode,
     this.fontWeight,
+    this.onFallback,
     super.key,
   }) : assert(fill == null || 0 <= fill && fill <= 1),
        assert(weight == null || weight > 0),
@@ -91,6 +93,13 @@ final class MorphIcon extends StatefulWidget {
 
   /// Selects a static font face when the family declares multiple weights.
   final FontWeight? fontWeight;
+
+  /// Called once per failed current preparation request, including in release.
+  ///
+  /// Replaces default debug error reporting. Superseded requests and requests
+  /// completed after disposal do not call this callback. Native icons remain
+  /// usable regardless of whether a callback is supplied.
+  final ValueChanged<MorphFallbackDetails>? onFallback;
 
   @override
   State<MorphIcon> createState() => _MorphIconState();
@@ -182,6 +191,7 @@ final class _MorphIconState extends State<MorphIcon> {
         direction: direction,
         error: error,
         stack: stack,
+        onFallback: widget.onFallback,
       );
     }
   }
