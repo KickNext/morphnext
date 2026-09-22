@@ -7,6 +7,7 @@ import '../geometry/morph_plan.dart';
 import '../font/font_selection.dart';
 import '../morph_repository.dart';
 import '../morph_fallback_details.dart';
+import '../morph_contour_transition.dart';
 import '../morph_spring.dart';
 import '../rendering/morph_painter.dart';
 import 'morph_diagnostics.dart';
@@ -31,6 +32,7 @@ final class AnimatedMorphIcon extends StatefulWidget {
     this.spring = MorphSprings.snappy,
     this.onEnd,
     this.onFallback,
+    this.contourTransition = MorphContourTransition.legacy,
     this.semanticLabel,
     this.textDirection,
     this.applyTextScaling,
@@ -83,6 +85,11 @@ final class AnimatedMorphIcon extends StatefulWidget {
   /// completed after disposal do not call this callback. The fallback spring
   /// still settles normally and calls [onEnd].
   final ValueChanged<MorphFallbackDetails>? onFallback;
+
+  /// How unmatched contours appear or disappear. Defaults to the original
+  /// interpolation. Changing this during a transition replans from the visible
+  /// shape, preserving position continuity.
+  final MorphContourTransition contourTransition;
 
   /// The semantic label announced for this icon.
   ///
@@ -180,6 +187,9 @@ final class _AnimatedMorphIconState extends State<AnimatedMorphIcon>
       _settleImmediately(widget.icon);
     } else if (directionChanged || fontSelectionChanged) {
       _restartForContext();
+    } else if (oldWidget.contourTransition != widget.contourTransition &&
+        _transitioning) {
+      _beginTransition(widget.icon);
     }
   }
 
@@ -248,6 +258,7 @@ final class _AnimatedMorphIconState extends State<AnimatedMorphIcon>
         target,
         direction,
         _fontSelection,
+        widget.contourTransition,
       );
     } else {
       final snapshot = currentPlan.snapshot(
@@ -261,6 +272,7 @@ final class _AnimatedMorphIconState extends State<AnimatedMorphIcon>
         target,
         direction,
         _fontSelection,
+        widget.contourTransition,
       );
     }
     _transitioning = true;

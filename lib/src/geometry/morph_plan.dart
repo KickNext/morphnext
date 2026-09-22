@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import '../morph_contour_transition.dart';
 import 'resample.dart';
 import 'shape.dart';
 
@@ -79,8 +80,10 @@ final class MorphPlanItem {
 
 /// A reusable, allocation-free interpolation plan between two filled shapes.
 final class MorphPlan {
-  MorphPlan(List<MorphPlanItem> items)
-    : items = List<MorphPlanItem>.unmodifiable(items) {
+  MorphPlan(
+    List<MorphPlanItem> items, {
+    this.contourTransition = MorphContourTransition.legacy,
+  }) : items = List<MorphPlanItem>.unmodifiable(items) {
     if (items.isEmpty) {
       throw const FormatException('A morph plan needs at least one contour');
     }
@@ -88,6 +91,9 @@ final class MorphPlan {
 
   /// Aligned contour pairs.
   final List<MorphPlanItem> items;
+
+  /// The interpolation policy for appearing and disappearing contours.
+  final MorphContourTransition contourTransition;
 
   /// Allocates one correctly sized output buffer per contour pair.
   List<Float64List> allocateOutput() => <Float64List>[
@@ -109,7 +115,17 @@ final class MorphPlan {
       if (points.length != item.source.length) {
         throw ArgumentError.value(points.length, 'output[$index].length');
       }
-      _interpolateItem(item, boundedT, points);
+      if (contourTransition == MorphContourTransition.linear &&
+          (item.sourceCollapsed || item.targetCollapsed)) {
+        final lifecycleT = boundedT.clamp(0.0, 1.0);
+        for (var point = 0; point < points.length; point++) {
+          points[point] =
+              item.source[point] +
+              (item.orientedTarget[point] - item.source[point]) * lifecycleT;
+        }
+      } else {
+        _interpolateItem(item, boundedT, points);
+      }
     }
   }
 
@@ -128,7 +144,11 @@ final class MorphPlan {
 }
 
 /// Builds a topology-aware morph plan between [source] and [target].
-MorphPlan buildMorphPlan(MorphShape source, MorphShape target) {
+MorphPlan buildMorphPlan(
+  MorphShape source,
+  MorphShape target, {
+  MorphContourTransition contourTransition = MorphContourTransition.legacy,
+}) {
   _validateShapes(source, target);
   final pairs = _matchContours(source, target);
   final items = <MorphPlanItem>[];
@@ -171,7 +191,7 @@ MorphPlan buildMorphPlan(MorphShape source, MorphShape target) {
       items.every((item) => !item.sourceCollapsed && !item.targetCollapsed)) {
     _applyGlobalAlignment(items);
   }
-  return MorphPlan(items);
+  return MorphPlan(items, contourTransition: contourTransition);
 }
 
 void _validateShapes(MorphShape source, MorphShape target) {

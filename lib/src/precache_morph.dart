@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'cache/morph_cache.dart';
 import 'morph_repository.dart';
+import 'morph_contour_transition.dart';
 import 'widgets/morph_icon_frame.dart';
 
 /// Prepares a bundled-font icon pair in the widgets' existing bounded cache.
@@ -10,6 +11,8 @@ import 'widgets/morph_icon_frame.dart';
 /// bundle, direction and font axes are captured synchronously from [context].
 /// Use the same overrides as the widget that will display the transition.
 /// Set [bidirectional] to also prepare the reverse transition.
+/// Set [contourTransition] to the same value used by the consuming widget;
+/// different modes use separate completed-plan cache entries.
 ///
 /// Completes with an error if the pair cannot be prepared; callers can catch
 /// that error while widgets continue to use their native-icon fallback.
@@ -22,6 +25,7 @@ Future<void> precacheMorph(
   required IconData from,
   required IconData to,
   bool bidirectional = false,
+  MorphContourTransition contourTransition = MorphContourTransition.legacy,
   TextDirection? textDirection,
   double? fill,
   double? weight,
@@ -49,8 +53,20 @@ Future<void> precacheMorph(
   );
   final repository = MorphRepository.forBundle(DefaultAssetBundle.of(context));
   return Future.wait(<Future<Object>>[
-    repository.planFor(from, to, style.textDirection, style.fontSelection),
+    repository.planFor(
+      from,
+      to,
+      style.textDirection,
+      style.fontSelection,
+      contourTransition,
+    ),
     if (bidirectional)
-      repository.planFor(to, from, style.textDirection, style.fontSelection),
+      repository.planFor(
+        to,
+        from,
+        style.textDirection,
+        style.fontSelection,
+        contourTransition,
+      ),
   ]).then<void>((_) {});
 }

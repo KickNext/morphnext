@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add opt-in `MorphContourTransition.linear` for gradual, symmetric appearance
+  and disappearance of unmatched contours. The default `legacy` mode preserves
+  existing trajectories. Widgets, precaching and cache keys share the setting.
 - Precompute contour metrics and pair costs during assignment; skip assignment
   work when each role has exactly one contour.
 - Add `precacheMorph`, including optional reverse-pair preparation using the

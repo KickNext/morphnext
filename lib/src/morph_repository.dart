@@ -9,6 +9,7 @@ import 'font/font_selection.dart';
 import 'geometry/morph_plan.dart';
 import 'geometry/resample.dart';
 import 'geometry/shape.dart';
+import 'morph_contour_transition.dart';
 
 const _maximumCachedShapes = 256;
 const _maximumRetainedShapeBytes = 8 << 20;
@@ -72,15 +73,27 @@ final class MorphRepository {
     IconData to,
     TextDirection direction, [
     MorphFontSelection fontSelection = defaultMorphFontSelection,
+    MorphContourTransition contourTransition = MorphContourTransition.legacy,
   ]) {
     _synchronizeCacheGeneration();
-    final key = _MorphCacheKey(_bundle, from, to, direction, fontSelection);
+    final key = _MorphCacheKey(
+      _bundle,
+      from,
+      to,
+      direction,
+      fontSelection,
+      contourTransition,
+    );
     return MorphCacheStore.instance.load(key, () async {
       final shapes = await Future.wait<MorphShape>(<Future<MorphShape>>[
         shapeFor(from, direction, fontSelection),
         shapeFor(to, direction, fontSelection),
       ]);
-      return buildMorphPlan(shapes[0], shapes[1]);
+      return buildMorphPlan(
+        shapes[0],
+        shapes[1],
+        contourTransition: contourTransition,
+      );
     }, _planBytes);
   }
 
@@ -89,9 +102,14 @@ final class MorphRepository {
     IconData to,
     TextDirection direction, [
     MorphFontSelection fontSelection = defaultMorphFontSelection,
+    MorphContourTransition contourTransition = MorphContourTransition.legacy,
   ]) async {
     _synchronizeCacheGeneration();
-    return buildMorphPlan(source, await shapeFor(to, direction, fontSelection));
+    return buildMorphPlan(
+      source,
+      await shapeFor(to, direction, fontSelection),
+      contourTransition: contourTransition,
+    );
   }
 
   void _synchronizeCacheGeneration() {
@@ -191,6 +209,7 @@ final class _MorphCacheKey {
     this.to,
     this.direction,
     this.fontSelection,
+    this.contourTransition,
   );
 
   final AssetBundle bundle;
@@ -198,6 +217,7 @@ final class _MorphCacheKey {
   final IconData to;
   final TextDirection direction;
   final MorphFontSelection fontSelection;
+  final MorphContourTransition contourTransition;
 
   @override
   bool operator ==(Object other) =>
@@ -206,9 +226,16 @@ final class _MorphCacheKey {
       from == other.from &&
       to == other.to &&
       direction == other.direction &&
-      fontSelection == other.fontSelection;
+      fontSelection == other.fontSelection &&
+      contourTransition == other.contourTransition;
 
   @override
-  int get hashCode =>
-      Object.hash(identityHashCode(bundle), from, to, direction, fontSelection);
+  int get hashCode => Object.hash(
+    identityHashCode(bundle),
+    from,
+    to,
+    direction,
+    fontSelection,
+    contourTransition,
+  );
 }
