@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import '../geometry/morph_plan.dart';
 import '../font/font_selection.dart';
 import '../morph_repository.dart';
+import '../morph_fallback_details.dart';
 import '../morph_spring.dart';
 import '../rendering/morph_painter.dart';
 import 'morph_diagnostics.dart';
@@ -29,6 +30,7 @@ final class AnimatedMorphIcon extends StatefulWidget {
     this.shadows,
     this.spring = MorphSprings.snappy,
     this.onEnd,
+    this.onFallback,
     this.semanticLabel,
     this.textDirection,
     this.applyTextScaling,
@@ -74,6 +76,13 @@ final class AnimatedMorphIcon extends StatefulWidget {
   /// The callback is not called for the initial icon or an interrupted
   /// transition.
   final VoidCallback? onEnd;
+
+  /// Called once per failed current preparation request, including in release.
+  ///
+  /// Replaces default debug error reporting. Superseded requests and requests
+  /// completed after disposal do not call this callback. The fallback spring
+  /// still settles normally and calls [onEnd].
+  final ValueChanged<MorphFallbackDetails>? onFallback;
 
   /// The semantic label announced for this icon.
   ///
@@ -291,6 +300,7 @@ final class _AnimatedMorphIconState extends State<AnimatedMorphIcon>
         direction: direction,
         error: error,
         stack: stack,
+        onFallback: widget.onFallback,
       );
     }
     if (!mounted || requestId != _requestId) return;

@@ -277,17 +277,31 @@ List<(int?, int?)> _matchRole(
       for (final sourceIndex in sourceIndices) (sourceIndex, null),
     ];
   }
+  if (sourceIndices.length == 1 && targetIndices.length == 1) {
+    return <(int?, int?)>[(sourceIndices.single, targetIndices.single)];
+  }
 
   final sourceAreaScale = _maximumArea(source, sourceIndices);
   final targetAreaScale = _maximumArea(target, targetIndices);
-  double cost(int sourcePosition, int targetPosition) => _contourCost(
-    source,
-    sourceIndices[sourcePosition],
-    sourceAreaScale,
-    target,
-    targetIndices[targetPosition],
-    targetAreaScale,
-  );
+  final sourceMetrics = <_ContourMetrics>[
+    for (final index in sourceIndices)
+      _contourMetrics(source, index, sourceAreaScale),
+  ];
+  final targetMetrics = <_ContourMetrics>[
+    for (final index in targetIndices)
+      _contourMetrics(target, index, targetAreaScale),
+  ];
+  // Assignment revisits the same pair in different branches. Compute each
+  // cost once, without changing traversal order or tie-breaking.
+  final costs = <Float64List>[
+    for (final sourceMetric in sourceMetrics)
+      Float64List.fromList(<double>[
+        for (final targetMetric in targetMetrics)
+          _contourCost(sourceMetric, targetMetric),
+      ]),
+  ];
+  double cost(int sourcePosition, int targetPosition) =>
+      costs[sourcePosition][targetPosition];
 
   if (sourceIndices.length <= targetIndices.length) {
     final assignment = _minimumInjection(
@@ -348,37 +362,37 @@ double _maximumArea(MorphShape shape, List<int> indices) => indices
     .map((index) => shape.contours[index].signedArea.abs())
     .fold<double>(_energyEpsilon, math.max);
 
-double _contourCost(
-  MorphShape source,
-  int sourceIndex,
-  double sourceAreaScale,
-  MorphShape target,
-  int targetIndex,
-  double targetAreaScale,
-) {
-  final sourceContour = source.contours[sourceIndex];
-  final targetContour = target.contours[targetIndex];
-  final sourceCentroid = _centroid(sourceContour.points);
-  final targetCentroid = _centroid(targetContour.points);
-  final centroidCost = _distance(sourceCentroid, targetCentroid);
-  final sourceLength =
-      _polygonLength(sourceContour.points) / math.sqrt(sourceAreaScale);
-  final targetLength =
-      _polygonLength(targetContour.points) / math.sqrt(targetAreaScale);
-  final lengthCost = (sourceLength - targetLength).abs();
-  final areaCost =
-      (sourceContour.signedArea.abs() / sourceAreaScale -
-              targetContour.signedArea.abs() / targetAreaScale)
-          .abs();
-  final depthCost = (sourceContour.depth - targetContour.depth).abs();
+typedef _ContourMetrics = ({
+  (double, double) centroid,
+  double length,
+  double area,
+  int depth,
+  (double, double)? parentCentroid,
+});
+
+_ContourMetrics _contourMetrics(MorphShape shape, int index, double areaScale) {
+  final contour = shape.contours[index];
+  return (
+    centroid: _centroid(contour.points),
+    length: _polygonLength(contour.points) / math.sqrt(areaScale),
+    area: contour.signedArea.abs() / areaScale,
+    depth: contour.depth,
+    parentCentroid: contour.parent == null
+        ? null
+        : _centroid(shape.contours[contour.parent!].points),
+  );
+}
+
+double _contourCost(_ContourMetrics source, _ContourMetrics target) {
+  final centroidCost = _distance(source.centroid, target.centroid);
+  final lengthCost = (source.length - target.length).abs();
+  final areaCost = (source.area - target.area).abs();
+  final depthCost = (source.depth - target.depth).abs();
   var parentCost = 0.0;
-  if ((sourceContour.parent == null) != (targetContour.parent == null)) {
+  if ((source.parentCentroid == null) != (target.parentCentroid == null)) {
     parentCost = 2;
-  } else if (sourceContour.parent != null) {
-    parentCost = _distance(
-      _centroid(source.contours[sourceContour.parent!].points),
-      _centroid(target.contours[targetContour.parent!].points),
-    );
+  } else if (source.parentCentroid != null) {
+    parentCost = _distance(source.parentCentroid!, target.parentCentroid!);
   }
   return centroidCost +
       0.35 * lengthCost +
