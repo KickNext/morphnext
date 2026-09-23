@@ -61,6 +61,9 @@ change matched contours' rotation or correspondence. Their size changes
 linearly with progress, while the spring still controls progress over time.
 Unmatched contours clamp overshoot so a vanished contour cannot reappear.
 Changing the mode during an implicit transition starts from the visible shape.
+This is independent of `Curves.linear` in the example playground: that curve
+controls progress over time, while `contourTransition` controls contour shape
+at a given progress value.
 
 The widgets accept the same visual font controls as Flutter's `Icon`:
 `fill`, `weight`, `grade`, `opticalSize`, `shadows`, `blendMode`, and

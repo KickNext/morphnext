@@ -492,6 +492,64 @@ void main() {
     expect(preview.to, Icons.close);
     expect(preview.progress.value, 0.625);
   });
+
+  testWidgets('linear timing and contour appearance are independent', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      const MorphnextExampleApp(
+        initialLocation: '/playground',
+        loadLiveMetadata: false,
+        useGoogleFonts: false,
+      ),
+    );
+
+    final preview = find.byWidgetPredicate(
+      (widget) =>
+          widget is AnimatedMorphIcon &&
+          widget.semanticLabel == 'Primary morph preview',
+    );
+    expect(
+      tester.widget<AnimatedMorphIcon>(preview).contourTransition,
+      MorphContourTransition.legacy,
+    );
+    final contourMode = find.byKey(const ValueKey<String>('contour-linear'));
+    await _reveal(tester, contourMode);
+    await tester.tap(contourMode);
+    await tester.pump();
+    expect(
+      tester.widget<AnimatedMorphIcon>(preview).contourTransition,
+      MorphContourTransition.linear,
+    );
+
+    final manual = find.text('Manual');
+    await _reveal(tester, manual);
+    await tester.tap(manual);
+    await tester.pump();
+    final linearCurve = find.byKey(const ValueKey<String>('curve-linear'));
+    await _reveal(tester, linearCurve);
+    await tester.tap(linearCurve);
+    await tester.pump();
+
+    final manualPreview = find.byWidgetPredicate(
+      (widget) =>
+          widget is MorphIcon &&
+          widget.semanticLabel == 'Primary morph preview',
+    );
+    expect(
+      tester.widget<MorphIcon>(manualPreview).contourTransition,
+      MorphContourTransition.linear,
+    );
+    final code = tester
+        .widget<SelectableText>(
+          find.byKey(const ValueKey<String>('playground-code')),
+        )
+        .data!;
+    expect(code, contains('contourTransition: MorphContourTransition.linear'));
+    expect(code, contains('curve: Curves.linear'));
+  });
 }
 
 Future<void> _reveal(WidgetTester tester, Finder finder) async {
