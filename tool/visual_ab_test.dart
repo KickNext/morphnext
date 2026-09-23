@@ -17,6 +17,9 @@ import '../test/support/test_font_builder.dart';
 import '../test/support/test_icons.dart';
 
 const _output = String.fromEnvironment('VISUAL_OUTPUT');
+const _contourTransition = bool.fromEnvironment('VISUAL_LINEAR')
+    ? MorphContourTransition.linear
+    : MorphContourTransition.legacy;
 const _boundary = ValueKey('capture');
 const _cell = 128.0;
 const _progress = [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0];
@@ -79,7 +82,7 @@ void main() {
                 grade: 0.0,
                 opticalSize: 48.0,
                 fontWeight: null,
-              )),
+              ), _contourTransition),
         );
         geometry['${entry.name}-${direction.name}'] = plan!.items.length;
       }
@@ -108,6 +111,7 @@ void main() {
                             _tile(
                               entry,
                               MorphIcon(
+                                contourTransition: _contourTransition,
                                 from: entry.from,
                                 to: entry.to,
                                 size: size,
@@ -151,6 +155,7 @@ void main() {
                     _tile(
                       entry,
                       AnimatedMorphIcon(
+                        contourTransition: _contourTransition,
                         key: ValueKey(entry.name),
                         icon: to ? entry.to : entry.from,
                         size: 80,

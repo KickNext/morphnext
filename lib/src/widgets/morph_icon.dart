@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../font/font_selection.dart';
 import '../morph_fallback_details.dart';
+import '../morph_contour_transition.dart';
 import '../geometry/morph_plan.dart';
 import '../morph_repository.dart';
 import '../rendering/morph_painter.dart';
@@ -34,6 +35,7 @@ final class MorphIcon extends StatefulWidget {
     this.blendMode,
     this.fontWeight,
     this.onFallback,
+    this.contourTransition = MorphContourTransition.legacy,
     super.key,
   }) : assert(fill == null || 0 <= fill && fill <= 1),
        assert(weight == null || weight > 0),
@@ -101,6 +103,11 @@ final class MorphIcon extends StatefulWidget {
   /// usable regardless of whether a callback is supplied.
   final ValueChanged<MorphFallbackDetails>? onFallback;
 
+  /// How unmatched contours appear or disappear. Defaults to the original
+  /// interpolation. Set [MorphContourTransition.linear] to opt in to gradual,
+  /// symmetric size changes. Matching contours are unaffected.
+  final MorphContourTransition contourTransition;
+
   @override
   State<MorphIcon> createState() => _MorphIconState();
 }
@@ -137,6 +144,7 @@ final class _MorphIconState extends State<MorphIcon> {
     if (oldWidget.from != widget.from ||
         oldWidget.to != widget.to ||
         oldWidget.textDirection != widget.textDirection ||
+        oldWidget.contourTransition != widget.contourTransition ||
         fontSelection != _fontSelection) {
       _direction = widget.textDirection ?? Directionality.of(context);
       _fontSelection = fontSelection;
@@ -179,7 +187,7 @@ final class _MorphIconState extends State<MorphIcon> {
     try {
       final plan = await MorphRepository.forBundle(
         bundle,
-      ).planFor(from, to, direction, fontSelection);
+      ).planFor(from, to, direction, fontSelection, widget.contourTransition);
       if (!mounted || requestId != _requestId) return;
       setState(() => _plan = plan);
     } catch (error, stack) {

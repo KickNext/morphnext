@@ -453,6 +453,7 @@ class _MorphPlaygroundPageState extends State<MorphPlaygroundPage>
   IconData _heroTo = Icons.close;
   var _heroShowingTo = false;
   var _heroMotion = _HeroMotion.spring;
+  var _contourTransition = MorphContourTransition.legacy;
   var _heroSize = 184.0;
   var _heroProgress = 0.0;
   Color? _heroColor;
@@ -721,6 +722,7 @@ class _MorphPlaygroundPageState extends State<MorphPlaygroundPage>
                   ),
             icon: target,
             spring: _effectiveHeroSpring,
+            contourTransition: _contourTransition,
             size: _heroSize,
             color: _heroColor,
             semanticLabel: 'Primary morph preview',
@@ -732,6 +734,7 @@ class _MorphPlaygroundPageState extends State<MorphPlaygroundPage>
             from: pair.from,
             to: pair.to,
             progress: AlwaysStoppedAnimation<double>(_heroProgress),
+            contourTransition: _contourTransition,
             size: _heroSize,
             color: _heroColor,
             semanticLabel: 'Primary morph preview',
@@ -1205,6 +1208,26 @@ class _MorphPlaygroundPageState extends State<MorphPlaygroundPage>
       ),
       const SizedBox(height: 10),
       _swatchRow(),
+      const SizedBox(height: 22),
+      _sectionLabel('CONTOUR APPEARANCE'),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: <Widget>[
+          for (final mode in MorphContourTransition.values)
+            ChoiceChip(
+              key: ValueKey<String>('contour-${mode.name}'),
+              label: Text(
+                mode == MorphContourTransition.legacy
+                    ? 'Original'
+                    : 'Linear size',
+              ),
+              selected: _contourTransition == mode,
+              showCheckmark: false,
+              onSelected: (_) => setState(() => _contourTransition = mode),
+            ),
+        ],
+      ),
       const SizedBox(height: 24),
       if (_heroMotion == _HeroMotion.spring) ...<Widget>[
         _sectionLabel('SPRING PHYSICS'),
@@ -1287,6 +1310,7 @@ class _MorphPlaygroundPageState extends State<MorphPlaygroundPage>
           ),
         ),
         const SizedBox(height: 4),
+        _sectionLabel('TIMING CURVE'),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -1318,6 +1342,7 @@ class _MorphPlaygroundPageState extends State<MorphPlaygroundPage>
     return 'AnimatedMorphIcon(\n'
         '  icon: ${_iconCode(_heroShowingTo ? _heroTo : _heroFrom)},\n'
         '  size: ${_heroSize.round()},\n'
+        '${_contourTransition == MorphContourTransition.linear ? '  contourTransition: MorphContourTransition.linear,\n' : ''}'
         '  spring: SpringDescription(\n'
         '    mass: ${spring.mass.toStringAsFixed(2)},\n'
         '    stiffness: ${spring.stiffness.toStringAsFixed(1)},\n'
@@ -1337,6 +1362,7 @@ class _MorphPlaygroundPageState extends State<MorphPlaygroundPage>
         '  from: ${_iconCode(_heroFrom)},\n'
         '  to: ${_iconCode(_heroTo)},\n'
         '  size: ${_heroSize.round()},\n'
+        '${_contourTransition == MorphContourTransition.linear ? '  contourTransition: MorphContourTransition.linear,\n' : ''}'
         '  progress: CurvedAnimation(\n'
         '    parent: controller, // ${_manualDuration.inMilliseconds} ms\n'
         '    curve: Curves.$curve,\n'

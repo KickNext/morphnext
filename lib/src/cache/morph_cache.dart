@@ -5,7 +5,7 @@ import 'sized_lru_cache.dart';
 ///
 /// The cache is shared by all morphnext widgets in the current Dart isolate.
 /// A completed morph is identified by its ordered icon pair, text direction,
-/// font parameters, and asset bundle. Morphs built from an interrupted
+/// font parameters, contour-transition mode, and asset bundle. Morphs built from an interrupted
 /// intermediate shape are one-off values and are not retained.
 abstract final class MorphCache {
   /// The default maximum number of retained completed morphs.

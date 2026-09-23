@@ -45,6 +45,26 @@ target to settle on its final vector frame.
 `MorphSprings.smooth` for a critically damped transition, or pass Flutter's
 `SpringDescription` directly for custom physics.
 
+The original morph trajectory remains the default. To make contours that
+appear or disappear change size gradually, opt in on either widget:
+
+```dart
+AnimatedMorphIcon(
+  icon: open ? Icons.favorite : Icons.favorite_border,
+  contourTransition: MorphContourTransition.linear,
+)
+```
+
+`MorphContourTransition.legacy` preserves existing visuals. `linear` affects
+only contours without a matching endpoint (including holes); it does not
+change matched contours' rotation or correspondence. Their size changes
+linearly with progress, while the spring still controls progress over time.
+Unmatched contours clamp overshoot so a vanished contour cannot reappear.
+Changing the mode during an implicit transition starts from the visible shape.
+This is independent of `Curves.linear` in the example playground: that curve
+controls progress over time, while `contourTransition` controls contour shape
+at a given progress value.
+
 The widgets accept the same visual font controls as Flutter's `Icon`:
 `fill`, `weight`, `grade`, `opticalSize`, `shadows`, `blendMode`, and
 `fontWeight`. Values not supplied directly are inherited from `IconTheme`.
@@ -138,6 +158,9 @@ disabled no completed plan is retained. Eviction can make later preparation
 necessary again. The returned future completes with an error if preparation
 fails; catch it if unavailable
 fonts are expected. Equal icons require no loading.
+
+Pass the same `contourTransition` to `precacheMorph` as to the widget. Plans
+with different contour-transition modes occupy separate cache entries.
 
 Both widgets accept `onFallback` for diagnostics in debug and release:
 
