@@ -1,5 +1,8 @@
 # morphnext examples
 
+The showcase requires Flutter >=3.47.0 and Dart >=3.13.0 because of its
+dependencies. The morphnext package retains its own lower SDK requirements.
+
 `example.dart` is the compact package example shown on pub.dev:
 
 ```console

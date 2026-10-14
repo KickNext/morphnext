@@ -75,9 +75,9 @@ void main() {
 }
 
 Future<void> _loadIconFonts() async {
-  final manifest =
-      jsonDecode(await rootBundle.loadString('FontManifest.json', cache: false))
-          as List<Object?>;
+  final manifest = jsonDecode(
+    await rootBundle.loadString('FontManifest.json', cache: false),
+  ) as List<Object?>;
   final loads = <Future<void>>[];
   for (final rawFamily in manifest) {
     final family = rawFamily! as Map<String, Object?>;
