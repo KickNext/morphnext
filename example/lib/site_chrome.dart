@@ -134,10 +134,8 @@ class _MorphnextTopBarState extends State<MorphnextTopBar> {
   }
 
   static Future<_PackageStats> _loadPackageStats() async {
-    final values = await Future.wait([
-      _loadGithubStars(),
-      _loadPubLikes(),
-    ]).timeout(const Duration(seconds: 6));
+    final values = await Future.wait([_loadGithubStars(), _loadPubLikes()])
+        .timeout(const Duration(seconds: 6));
     return _PackageStats(githubStars: values[0], pubLikes: values[1]);
   }
 
