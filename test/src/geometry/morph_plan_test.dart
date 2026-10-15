@@ -6,6 +6,24 @@ import 'package:morphnext/src/geometry/morph_plan.dart';
 import 'package:morphnext/src/geometry/shape.dart';
 
 void main() {
+  for (final count in [6, 9]) {
+    test('matches reordered contours with $count-contour assignment', () {
+      final contours = <SampledContour>[
+        for (var i = 0; i < count; i++) circleContour(i * 4.0, 0, 1, 0, null),
+      ];
+      final source = MorphShape(contours);
+      final target = MorphShape(contours.reversed.toList());
+      final plan = buildMorphPlan(source, target);
+      final output = plan.allocateOutput();
+      for (final t in [0.0, 0.37, 1.0]) {
+        plan.interpolate(t, output);
+        for (var i = 0; i < count; i++) {
+          expectPointsClose(output[i], contours[i].points);
+        }
+      }
+    });
+  }
+
   test('polar plan is exact at both endpoints', () {
     final source = irregularLoop();
     final target = transformContour(
