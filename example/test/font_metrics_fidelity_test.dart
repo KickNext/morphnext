@@ -25,6 +25,30 @@ void main() {
     await _loadIconFonts(manifest);
   });
 
+  test('every Lucide catalog icon has a usable bundled outline', () async {
+    final icons = iconCatalog
+        .where((entry) => entry.family == IconCatalogFamily.lucide)
+        .toList();
+    expect(icons, isNotEmpty);
+    final font = await _parseFont(_manifestFamily(icons.first.icon));
+    for (final entry in icons) {
+      expect(entry.icon.fontFamily, 'Lucide', reason: entry.name);
+      expect(
+        entry.icon.fontPackage,
+        'lucide_icons_flutter',
+        reason: entry.name,
+      );
+      expect(entry.icon.matchTextDirection, isFalse, reason: entry.name);
+      expect(
+        font.glyphIndexForCodePoint(entry.icon.codePoint),
+        isNotNull,
+        reason: entry.name,
+      );
+      final outline = font.glyphForCodePoint(entry.icon.codePoint);
+      expect(outline.contours, isNotEmpty, reason: entry.name);
+      expect(outline.advanceWidth, greaterThan(0), reason: entry.name);
+    }
+  });
   testWidgets('representative font faces use native Icon metrics', (
     tester,
   ) async {
@@ -169,6 +193,11 @@ List<_FontCase> _fontCases() {
       'Material',
       icon('menu', IconCatalogFamily.material),
       icon('abc', IconCatalogFamily.material),
+    ),
+    _FontCase(
+      'Lucide',
+      icon('house', IconCatalogFamily.lucide),
+      icon('cpu_ai', IconCatalogFamily.lucide),
     ),
     _FontCase(
       'Font Awesome Brands',
