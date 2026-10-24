@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../font/binary_reader.dart';
+import '../morph_fallback_details.dart';
 
 final Set<Object> _reportedMorphFailures = <Object>{};
 
@@ -10,7 +11,30 @@ void reportMorphFailureOnce({
   required TextDirection direction,
   required Object error,
   StackTrace? stack,
+  ValueChanged<MorphFallbackDetails>? onFallback,
 }) {
+  if (onFallback != null) {
+    try {
+      onFallback(
+        MorphFallbackDetails(
+          from: from,
+          to: to,
+          error: error,
+          stackTrace: stack ?? StackTrace.empty,
+        ),
+      );
+    } catch (callbackError, callbackStack) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: callbackError,
+          stack: callbackStack,
+          library: 'morphnext',
+          context: ErrorDescription('while calling onFallback'),
+        ),
+      );
+    }
+    return;
+  }
   assert(() {
     if (error is FontDataException && error.cause == null) return true;
 
