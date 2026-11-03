@@ -117,6 +117,49 @@ cache, `MorphCache.disable()` to empty and disable it, and `MorphCache.reset()`
 to restore `defaultMaxMorphs` and `defaultMaxBytes`. `configure` throws
 `ArgumentError` unless both limits are positive.
 
+Prepare a known pair before the first interaction, for example from
+`didChangeDependencies` or an event handler:
+
+```dart
+await precacheMorph(
+  context,
+  from: Icons.menu,
+  to: Icons.close,
+  bidirectional: true,
+);
+```
+
+The helper shares the widgets' bounded caches and inherits the asset bundle,
+direction, and font axes from the context. Pass the same `textDirection`,
+`fill`, `weight`, `grade`, `opticalSize`, and `fontWeight` overrides as the
+widget when applicable. Reverse plans are separate; `bidirectional` prepares
+both. It respects `MorphCache` limits, clearing and disabling; with caching
+disabled no completed plan is retained. Eviction can make later preparation
+necessary again. The returned future completes with an error if preparation
+fails; catch it if unavailable
+fonts are expected. Equal icons require no loading.
+
+Both widgets accept `onFallback` for diagnostics in debug and release:
+
+```dart
+AnimatedMorphIcon(
+  icon: currentIcon,
+  onFallback: (details) {
+    debugPrint('Morph to ${details.to} unavailable: ${details.error}');
+  },
+)
+```
+
+The callback receives `MorphFallbackDetails` with the source, target, original
+error, and stack trace. It runs once per failed current preparation request,
+replaces default debug error reporting, and ignores superseded requests or
+completion after disposal. Native-icon fallback still works and an implicit
+transition still calls `onEnd` when it settles. No callback means the existing
+fallback behavior is unchanged.
+
+See [the performance guide](https://github.com/KickNext/morphnext/blob/main/tool/PERFORMANCE.md) for geometry benchmarks and
+a standalone Flutter frame-timing harness.
+
 ## Limitations
 
 morphnext preserves filled contour topology and keeps holes open, but arbitrary
