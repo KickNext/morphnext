@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add `MorphFont`, `MorphGlyph` and `MorphGlyphPlan`: read a glyph's outline
+  from font bytes by code point and plan a morph between two glyphs, so
+  packages can morph beyond icons without importing `lib/src`.
+
 ## 0.6.1
 
 - Update the web showcase to Lucide 3.1.17.
