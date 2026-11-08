@@ -143,7 +143,7 @@ final class MorphRepository {
     final shape = sampleContoursWithPointCounts(
       normalized,
       pointCounts: <int>[
-        for (final contour in normalized) _pointCountFor(contour),
+        for (final contour in normalized) contourPointCountFor(contour),
       ],
       fillRule: MorphFillRule.nonZero,
     );
@@ -154,7 +154,9 @@ final class MorphRepository {
   }
 }
 
-int _pointCountFor(CubicContour contour) {
+/// Points sampled for a glyph contour: [_samplesPerCubicSegment] per curve,
+/// in powers of two between the minimum and maximum counts.
+int contourPointCountFor(CubicContour contour) {
   final required = contour.segmentCount * _samplesPerCubicSegment;
   var pointCount = _minimumContourPointCount;
   while (pointCount < required && pointCount < _maximumContourPointCount) {
