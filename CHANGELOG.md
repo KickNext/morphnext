@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Precompute contour metrics and pair costs during assignment; skip assignment
+  work when each role has exactly one contour.
+- Add `precacheMorph`, including optional reverse-pair preparation using the
+  widgets' existing bounded caches.
+- Add `onFallback` and `MorphFallbackDetails` to both widgets for per-request
+  diagnostics in debug and release, with stale-request and disposal guards.
+- Add geometry microbenchmarks and a standalone example performance harness.
 - Add an experimental glyph outline API, so packages can morph more than
   icons without importing `lib/src`. `MorphFont` reads glyphs from TrueType or
   CFF font bytes in ems about their pen position and baseline.
