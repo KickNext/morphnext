@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Apply `IconThemeData.opacity` once to the native icons `MorphIcon` and
+  `AnimatedMorphIcon` show before, after and instead of a morph. They used to
+  apply it twice, so under a theme opacity of 0.5 a settled icon drew at a
+  quarter of its colour's alpha while the morph drew at half, and every
+  transition began and ended with a jump in brightness. Settled icons under a
+  theme opacity other than 1 now match Flutter's `Icon`.
+
 ## 0.7.1
 
 - `MorphOutline.placed` and `MorphOutline.combine` keep the points each glyph
