@@ -31,6 +31,22 @@ Rect _boundsOf(List<Float64List> polygons) {
   return Rect.fromLTRB(left, top, right, bottom);
 }
 
+/// Whether [outline], filled with the non-zero rule, covers [point].
+bool _fillContains(MorphOutline outline, Offset point) {
+  final plan = MorphOutlinePlan(outline, outline);
+  final output = plan.allocateOutput();
+  plan.interpolate(0, output);
+  final path = Path()..fillType = PathFillType.nonZero;
+  for (final points in output) {
+    path.moveTo(points[0], points[1]);
+    for (var i = 2; i < points.length; i += 2) {
+      path.lineTo(points[i], points[i + 1]);
+    }
+    path.close();
+  }
+  return path.contains(point);
+}
+
 void main() {
   final font = MorphFont.parse(TestFontBuilder.trueType());
 
@@ -111,6 +127,21 @@ void main() {
       expect(word.contourCount, 3);
       expect(word.bounds, _rect(.1, -.9, 1.9, -.1));
       expect(MorphOutline.combine(const <MorphOutline>[]), isNull);
+    });
+
+    test('combined parts add up where they overlap instead of cancelling', () {
+      // These glyphs wind their outer contours in opposite directions, as
+      // TrueType and CFF fonts do. (0.25, -0.2) is inside both.
+      final square = font.glyph(TestFontBuilder.squareWithHoleCodePoint)!;
+      final chevron = font.glyph(TestFontBuilder.chevronCodePoint)!;
+      const point = Offset(.25, -.2);
+      for (final outline in <MorphOutline>[square, chevron]) {
+        expect(_fillContains(outline, point), isTrue);
+      }
+      final both = MorphOutline.combine(<MorphOutline>[square, chevron])!;
+      expect(_fillContains(both, point), isTrue);
+      // The square's hole stays open where the chevron does not cover it.
+      expect(_fillContains(both, const Offset(.6, -.6)), isFalse);
     });
 
     test('the README example morphs one word into another', () {

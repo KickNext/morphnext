@@ -71,9 +71,13 @@ final class MorphFont {
           ]),
         ),
     ];
+    final shape = sampleOutlineContours(contours);
+    // Keep the contours as sampling oriented them, so every glyph's fill
+    // winds the same way whatever its font's convention, and glyphs that
+    // overlap after [MorphOutline.combine] add up instead of cancelling.
     return MorphGlyph._(
-      contours,
-      sampleOutlineContours(contours),
+      shape.exactContours!,
+      shape,
       advance: outline.advanceWidth / unitsPerEm,
       ascender: metrics.ascender / unitsPerEm,
       descender: metrics.descender / unitsPerEm,
@@ -103,6 +107,8 @@ final class MorphOutline {
     return contours.isEmpty ? null : MorphOutline._(contours);
   }
 
+  /// Exact contours, with each glyph's fill winding the same way. [placed]
+  /// keeps that, since its scale is positive.
   final List<CubicContour> _contours;
   MorphShape? _sampled;
 
