@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Precompute contour metrics and pair costs during assignment; skip assignment
+  work when each role has exactly one contour.
+- Add `precacheMorph`, including optional reverse-pair preparation using the
+  widgets' existing bounded caches.
+- Add `onFallback` and `MorphFallbackDetails` to both widgets for per-request
+  diagnostics in debug and release, with stale-request and disposal guards.
+- Add geometry microbenchmarks and a standalone example performance harness.
+
 ## 0.6.1
 
 - Update the web showcase to Lucide 3.1.17.
