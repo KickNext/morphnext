@@ -9,6 +9,9 @@
 - Add `onFallback` and `MorphFallbackDetails` to both widgets for per-request
   diagnostics in debug and release, with stale-request and disposal guards.
 - Add geometry microbenchmarks and a standalone example performance harness.
+- Add `MorphFont`, `MorphGlyph` and `MorphGlyphPlan`: read a glyph's outline
+  from font bytes by code point and plan a morph between two glyphs, so
+  packages can morph beyond icons without importing `lib/src`.
 
 ## 0.6.1
 

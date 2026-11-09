@@ -65,6 +65,24 @@ MorphIcon(
 )
 ```
 
+## Glyph outlines
+
+For morphing beyond icons, the outline engine is public: read any glyph from
+font bytes by code point and plan a morph between two glyphs.
+
+```dart
+final font = MorphFont.parse(bytes); // TrueType or CFF
+final a = font.glyph(0x61)!; // 'a', in ems about its origin
+final g = font.glyph(0x67)!; // 'g'
+final plan = MorphGlyphPlan(a, g);
+final contours = plan.allocateOutput();
+plan.interpolate(0.5, contours); // closed polygons, x and y in ems
+```
+
+Fill the result with the non-zero rule. Glyphs from different fonts or weights
+morph too. [morphtext](https://pub.dev/packages/morphtext) builds text
+morphing on this.
+
 ## Font compatibility
 
 There is no `fontAsset` argument. `IconData` identifies a code point, font
