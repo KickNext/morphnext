@@ -12,9 +12,6 @@ import 'geometry/shape.dart';
 
 const _maximumCachedShapes = 256;
 const _maximumRetainedShapeBytes = 8 << 20;
-const _minimumContourPointCount = 64;
-const _maximumContourPointCount = 2048;
-const _samplesPerCubicSegment = 16;
 typedef _ShapeCacheKey = (IconData, TextDirection, MorphFontSelection);
 
 /// Extracts, normalizes, and caches morph geometry for one asset bundle.
@@ -140,29 +137,12 @@ final class MorphRepository {
       }
       normalized.add(CubicContour(points));
     }
-    final shape = sampleContoursWithPointCounts(
-      normalized,
-      pointCounts: <int>[
-        for (final contour in normalized) contourPointCountFor(contour),
-      ],
-      fillRule: MorphFillRule.nonZero,
-    );
+    final shape = sampleOutlineContours(normalized);
     if (shape.contours.isEmpty) {
       throw const FormatException('Icon glyph sampled to an empty shape');
     }
     return shape;
   }
-}
-
-/// Points sampled for a glyph contour: [_samplesPerCubicSegment] per curve,
-/// in powers of two between the minimum and maximum counts.
-int contourPointCountFor(CubicContour contour) {
-  final required = contour.segmentCount * _samplesPerCubicSegment;
-  var pointCount = _minimumContourPointCount;
-  while (pointCount < required && pointCount < _maximumContourPointCount) {
-    pointCount *= 2;
-  }
-  return pointCount;
 }
 
 int _shapeBytes(MorphShape shape) =>

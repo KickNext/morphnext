@@ -67,21 +67,33 @@ MorphIcon(
 
 ## Glyph outlines
 
-For morphing beyond icons, the outline engine is public: read any glyph from
-font bytes by code point and plan a morph between two glyphs.
+The outline engine is public, so you can morph more than icons. Read any glyph
+from font bytes by code point and plan a morph between two glyphs:
 
 ```dart
 final font = MorphFont.parse(bytes); // TrueType or CFF
-final a = font.glyph(0x61)!; // 'a', in ems about its origin
+final a = font.glyph(0x61)!; // 'a', in ems about its pen position and baseline
 final g = font.glyph(0x67)!; // 'g'
-final plan = MorphGlyphPlan(a, g);
+final plan = MorphOutlinePlan(a, g);
 final contours = plan.allocateOutput();
-plan.interpolate(0.5, contours); // closed polygons, x and y in ems
+plan.interpolate(0.5, contours); // closed polygons, interleaved x and y
 ```
 
-Fill the result with the non-zero rule. Glyphs from different fonts or weights
-morph too. [morphtext](https://pub.dev/packages/morphtext) builds text
-morphing on this.
+Fill the result with the non-zero rule. The baseline is at y = 0, so glyphs
+from different fonts, weights, and variable-font instances share one frame.
+To morph a whole word as one outline, place each glyph at its pen position and
+size, then combine them:
+
+```dart
+final hi = MorphOutline.combine([
+  h.placed(Offset.zero, scale: 32),
+  i.placed(Offset(h.advance * 32, 0), scale: 32),
+])!;
+```
+
+Nothing is cached, so keep the fonts, glyphs, and plans you reuse. This API is
+experimental and may change in a minor release before 1.0.
+[morphtext](https://pub.dev/packages/morphtext) builds text morphing on it.
 
 ## Font compatibility
 
