@@ -9,6 +9,8 @@
 
 morphnext turns bundled Flutter `IconData` glyphs into interruptible,
 spring-driven vector morphs without requiring per-pair animation assets.
+Its [outline engine](#glyph-outlines) is public, so text and other font glyphs
+can morph too.
 
 ![morphnext showcase](https://raw.githubusercontent.com/KickNext/morphnext/main/assets/morphnext_hero_720p_60fps_full_cycle.webp)
 
@@ -159,6 +161,16 @@ not morph arbitrary Flutter `Path` objects or SVG artwork.
 `example/example.dart` is the compact pub.dev example. The app in
 `example/lib/main.dart` powers the GitHub Pages showcase and interactive
 playground.
+
+## Built with morphnext
+
+- [morphtext](https://pub.dev/packages/morphtext) morphs text letter by
+  letter, outline into outline. A light word turns bold, a serif word turns
+  sans, and one word becomes another or flows into an icon, using the
+  [glyph outline API](#glyph-outlines).
+  [Try it in the browser](https://morphtext.drei.gg).
+
+Built something with morphnext? Open a pull request to add it here.
 
 ## License and attribution
 

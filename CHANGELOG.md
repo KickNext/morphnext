@@ -6,7 +6,8 @@
   icons without importing `lib/src`. `MorphFont` reads glyphs from TrueType or
   CFF font bytes in ems about their pen position and baseline.
   `MorphOutline.placed` and `MorphOutline.combine` lay glyphs out as one
-  outline, and `MorphOutlinePlan` morphs one outline into another.
+  outline, and `MorphOutlinePlan` morphs one outline into another. Thanks to
+  [Drei Guintu](https://github.com/alguintu) for the first version.
 
 ## 0.6.1
 
