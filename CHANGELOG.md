@@ -1,20 +1,20 @@
 # Changelog
 
-## Unreleased
+## 0.7.0
 
-- Precompute contour metrics and pair costs during assignment; skip assignment
-  work when each role has exactly one contour.
 - Add `precacheMorph`, including optional reverse-pair preparation using the
   widgets' existing bounded caches.
 - Add `onFallback` and `MorphFallbackDetails` to both widgets for per-request
   diagnostics in debug and release, with stale-request and disposal guards.
-- Add geometry microbenchmarks and a standalone example performance harness.
 - Add an experimental glyph outline API, so packages can morph more than
   icons without importing `lib/src`. `MorphFont` reads glyphs from TrueType or
   CFF font bytes in ems about their pen position and baseline.
   `MorphOutline.placed` and `MorphOutline.combine` lay glyphs out as one
   outline, and `MorphOutlinePlan` morphs one outline into another. Thanks to
   [Drei Guintu](https://github.com/alguintu) for the first version.
+- Prepare morphs faster: precompute contour metrics and pair costs during
+  assignment, and skip assignment work when each role has exactly one contour.
+- Add geometry microbenchmarks and a standalone example performance harness.
 
 ## 0.6.1
 
