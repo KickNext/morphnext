@@ -169,10 +169,18 @@ int _outlinePointCount(CubicContour contour) {
 }
 
 /// Recomputes topology for already sampled point buffers.
+///
+/// [exactContours], when given, are the cubic contours the buffers were
+/// sampled from, in the same order.
 MorphShape sampledShapeFromPointBuffers(
   List<Float64List> pointBuffers, {
   MorphFillRule fillRule = MorphFillRule.evenOdd,
-}) => _sampledShapeFromPointBuffers(pointBuffers, fillRule: fillRule);
+  List<CubicContour>? exactContours,
+}) => _sampledShapeFromPointBuffers(
+  pointBuffers,
+  fillRule: fillRule,
+  exactContours: exactContours,
+);
 
 MorphShape _sampledShapeFromPointBuffers(
   List<Float64List> pointBuffers, {

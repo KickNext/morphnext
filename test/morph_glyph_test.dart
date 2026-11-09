@@ -31,6 +31,47 @@ Rect _boundsOf(List<Float64List> polygons) {
   return Rect.fromLTRB(left, top, right, bottom);
 }
 
+/// [outline] as [MorphOutlinePlan] draws it at rest, as point lists.
+List<List<double>> _polygons(MorphOutline outline) {
+  final plan = MorphOutlinePlan(outline, outline);
+  final output = plan.allocateOutput();
+  plan.interpolate(0, output);
+  return <List<double>>[for (final points in output) points.toList()];
+}
+
+/// Expects [actual] to hold the polygons of [expected], each moved by
+/// [offset] after scaling by [scale], in any order.
+void _expectPlacedPolygons(
+  List<List<double>> actual,
+  List<List<double>> expected, {
+  Offset offset = Offset.zero,
+  double scale = 1,
+}) {
+  expect(actual, hasLength(expected.length));
+  final unmatched = actual.toList();
+  for (final (index, points) in expected.indexed) {
+    final moved = <double>[
+      for (var i = 0; i < points.length; i += 2) ...<double>[
+        offset.dx + points[i] * scale,
+        offset.dy + points[i + 1] * scale,
+      ],
+    ];
+    final match = unmatched.indexWhere(
+      (candidate) =>
+          candidate.length == moved.length &&
+          Iterable<int>.generate(
+            moved.length,
+          ).every((i) => (candidate[i] - moved[i]).abs() < _tolerance),
+    );
+    expect(
+      match,
+      isNot(-1),
+      reason: 'no polygon has the points of polygon $index, moved',
+    );
+    unmatched.removeAt(match);
+  }
+}
+
 /// Whether [outline], filled with the non-zero rule, covers [point].
 bool _fillContains(MorphOutline outline, Offset point) {
   final plan = MorphOutlinePlan(outline, outline);
@@ -82,6 +123,13 @@ void main() {
       expect(heavy.bounds.right, closeTo(.34, _tolerance));
     });
 
+    test('lists the axes of a variable font', () {
+      final variable = MorphFont.parse(TestFontBuilder.variableTrueType());
+      expect(variable.axes, <String>{'wght'});
+      expect(font.axes, isEmpty);
+      expect(() => variable.axes.add('opsz'), throwsUnsupportedError);
+    });
+
     test('a missing or empty glyph is null', () {
       expect(font.contains(0x41), isFalse);
       expect(font.glyph(0x41), isNull);
@@ -101,6 +149,50 @@ void main() {
       expect(placed, isNot(isA<MorphGlyph>()));
       expect(placed.contourCount, 2);
       expect(placed.bounds, _rect(3, -6, 11, 2));
+    });
+
+    test('placed keeps how the glyph is sampled', () {
+      // A D drawn counterclockwise, as CFF winds outer contours, from the
+      // middle of its top edge. Sampling turns it around and starts it at
+      // its first corner, which depends on the direction. Placing must move
+      // those points, not sample the turned contour again from another one.
+      final d = MorphFont.parse(
+        TestFontBuilder.cff1WithProgram(const <Object>[
+          <num>[300, 900],
+          21,
+          <num>[-200, 0, 0, -800, 400, 0],
+          5,
+          <num>[220, 0, 180, 180, 0, 220, 0, 220, -180, 180, -220, 0],
+          8,
+          14,
+        ]),
+      );
+      for (final glyph in <MorphGlyph>[
+        d.glyph(TestFontBuilder.cffCodePoint)!,
+        font.glyph(TestFontBuilder.squareWithHoleCodePoint)!,
+        font.glyph(TestFontBuilder.chevronCodePoint)!,
+      ]) {
+        const offset = Offset(2, 3);
+        _expectPlacedPolygons(
+          _polygons(glyph.placed(offset, scale: 10)),
+          _polygons(glyph),
+          offset: offset,
+          scale: 10,
+        );
+      }
+    });
+
+    test('combine keeps how each part is sampled', () {
+      final square = font.glyph(TestFontBuilder.squareWithHoleCodePoint)!;
+      final chevron = font.glyph(TestFontBuilder.chevronCodePoint)!;
+      final word = MorphOutline.combine(<MorphOutline>[
+        square,
+        chevron.placed(Offset(square.advance, 0)),
+      ])!;
+      _expectPlacedPolygons(_polygons(word), <List<double>>[
+        ..._polygons(square),
+        ..._polygons(chevron.placed(Offset(square.advance, 0))),
+      ]);
     });
 
     test('placed rejects scales that are not positive and finite', () {

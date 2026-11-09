@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.1
+
+- `MorphOutline.placed` and `MorphOutline.combine` keep the points each glyph
+  was sampled at, so placing a glyph no longer changes how it morphs. They
+  used to sample the outline again from contours that sampling had already
+  turned around, which started some of them at another corner, most often in
+  CFF fonts. They no longer sample twice, either.
+- Add `MorphFont.axes`, the tags of a variable font's design axes.
+
 ## 0.7.0
 
 - Add `precacheMorph`, including optional reverse-pair preparation using the

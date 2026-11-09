@@ -83,6 +83,8 @@ plan.interpolate(0.5, contours); // closed polygons, interleaved x and y
 
 Fill the result with the non-zero rule. The baseline is at y = 0, so glyphs
 from different fonts, weights, and variable-font instances share one frame.
+`font.axes` lists a variable font's axes, and `glyph` takes `weight`, `fill`,
+`grade`, and `opticalSize`.
 To morph a whole word as one outline, place each glyph at its pen position and
 size, then combine them:
 

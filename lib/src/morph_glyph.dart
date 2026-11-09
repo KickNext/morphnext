@@ -31,6 +31,15 @@ final class MorphFont {
 
   final OpenTypeFont _font;
 
+  /// The tags of the design axes a variable font declares, such as `wght` and
+  /// `opsz`. Empty for a static font.
+  ///
+  /// [glyph] can select an instance along `wght`, `FILL`, `GRAD`, and `opsz`.
+  /// Other axes stay at their defaults.
+  late final Set<String> axes = Set<String>.unmodifiable(
+    _font.variationAxes.keys,
+  );
+
   /// Whether the font maps [codePoint] to a glyph.
   bool contains(int codePoint) => _font.containsCodePoint(codePoint);
 
@@ -71,13 +80,11 @@ final class MorphFont {
           ]),
         ),
     ];
-    final shape = sampleOutlineContours(contours);
-    // Keep the contours as sampling oriented them, so every glyph's fill
-    // winds the same way whatever its font's convention, and glyphs that
-    // overlap after [MorphOutline.combine] add up instead of cancelling.
+    // Sampling orients the contours so that every glyph's fill winds the same
+    // way whatever its font's convention, and glyphs that overlap after
+    // [MorphOutline.combine] add up instead of cancelling.
     return MorphGlyph._(
-      shape.exactContours!,
-      shape,
+      sampleOutlineContours(contours),
       advance: outline.advanceWidth / unitsPerEm,
       ascender: metrics.ascender / unitsPerEm,
       descender: metrics.descender / unitsPerEm,
@@ -94,25 +101,35 @@ final class MorphFont {
 ///
 /// This API is experimental. It may change in a minor release before 1.0.
 final class MorphOutline {
-  MorphOutline._(this._contours, [this._sampled]);
+  MorphOutline._(this._shape);
 
   /// Several outlines as one, so that a whole word, for example, morphs as a
   /// single outline instead of letter by letter.
   ///
-  /// Place each part first with [placed]. Returns null when [parts] is empty.
+  /// Place each part first with [placed]. Each part keeps the points it was
+  /// sampled at. Returns null when [parts] is empty.
   static MorphOutline? combine(Iterable<MorphOutline> parts) {
-    final contours = <CubicContour>[
-      for (final part in parts) ...part._contours,
-    ];
-    return contours.isEmpty ? null : MorphOutline._(contours);
+    final shapes = <MorphShape>[for (final part in parts) part._shape];
+    if (shapes.isEmpty) return null;
+    return MorphOutline._(
+      sampledShapeFromPointBuffers(
+        <Float64List>[
+          for (final shape in shapes)
+            for (final contour in shape.contours) contour.points,
+        ],
+        fillRule: MorphFillRule.nonZero,
+        exactContours: <CubicContour>[
+          for (final shape in shapes) ...shape.exactContours!,
+        ],
+      ),
+    );
   }
 
-  /// Exact contours, with each glyph's fill winding the same way. [placed]
-  /// keeps that, since its scale is positive.
-  final List<CubicContour> _contours;
-  MorphShape? _sampled;
-
-  MorphShape get _shape => _sampled ??= sampleOutlineContours(_contours);
+  /// The sampled outline, with each glyph's fill winding the same way, and
+  /// the exact contours it was sampled from. [placed] and [combine] move these
+  /// points instead of sampling again, which could start a contour elsewhere
+  /// and change how it morphs.
+  final MorphShape _shape;
 
   /// This outline scaled about its origin by [scale], then moved by [offset].
   ///
@@ -125,17 +142,35 @@ final class MorphOutline {
     if (!scale.isFinite || scale <= 0) {
       throw ArgumentError.value(scale, 'scale', 'Must be finite and positive');
     }
-    return MorphOutline._(<CubicContour>[
-      for (final contour in _contours)
-        CubicContour(
-          Float64List.fromList(<double>[
-            for (var i = 0; i < contour.points.length; i += 2) ...<double>[
-              offset.dx + contour.points[i] * scale,
-              offset.dy + contour.points[i + 1] * scale,
-            ],
-          ]),
-        ),
-    ]);
+    Float64List move(Float64List points) {
+      final moved = Float64List(points.length);
+      for (var i = 0; i < points.length; i += 2) {
+        moved[i] = offset.dx + points[i] * scale;
+        moved[i + 1] = offset.dy + points[i + 1] * scale;
+      }
+      return moved;
+    }
+
+    // A positive scale keeps each contour's direction, nesting, and order.
+    return MorphOutline._(
+      MorphShape(
+        <SampledContour>[
+          for (final contour in _shape.contours)
+            SampledContour(
+              move(contour.points),
+              signedArea: contour.signedArea * scale * scale,
+              depth: contour.depth,
+              parent: contour.parent,
+              isHole: contour.isHole,
+            ),
+        ],
+        exactContours: <CubicContour>[
+          for (final contour in _shape.exactContours!)
+            CubicContour(move(contour.points)),
+        ],
+        fillRule: _shape.fillRule,
+      ),
+    );
   }
 
   /// How many closed contours the outline has.
@@ -170,8 +205,7 @@ final class MorphOutline {
 /// This API is experimental. It may change in a minor release before 1.0.
 final class MorphGlyph extends MorphOutline {
   MorphGlyph._(
-    super.contours,
-    MorphShape super.sampled, {
+    super.shape, {
     required this.advance,
     required this.ascender,
     required this.descender,
