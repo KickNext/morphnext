@@ -9,6 +9,8 @@
 
 morphnext turns bundled Flutter `IconData` glyphs into interruptible,
 spring-driven vector morphs without requiring per-pair animation assets.
+Its [outline engine](#glyph-outlines) is public, so text and other font glyphs
+can morph too.
 
 ![morphnext showcase](https://raw.githubusercontent.com/KickNext/morphnext/main/assets/morphnext_hero_720p_60fps_full_cycle.webp)
 
@@ -67,21 +69,33 @@ MorphIcon(
 
 ## Glyph outlines
 
-For morphing beyond icons, the outline engine is public: read any glyph from
-font bytes by code point and plan a morph between two glyphs.
+The outline engine is public, so you can morph more than icons. Read any glyph
+from font bytes by code point and plan a morph between two glyphs:
 
 ```dart
 final font = MorphFont.parse(bytes); // TrueType or CFF
-final a = font.glyph(0x61)!; // 'a', in ems about its origin
+final a = font.glyph(0x61)!; // 'a', in ems about its pen position and baseline
 final g = font.glyph(0x67)!; // 'g'
-final plan = MorphGlyphPlan(a, g);
+final plan = MorphOutlinePlan(a, g);
 final contours = plan.allocateOutput();
-plan.interpolate(0.5, contours); // closed polygons, x and y in ems
+plan.interpolate(0.5, contours); // closed polygons, interleaved x and y
 ```
 
-Fill the result with the non-zero rule. Glyphs from different fonts or weights
-morph too. [morphtext](https://pub.dev/packages/morphtext) builds text
-morphing on this.
+Fill the result with the non-zero rule. The baseline is at y = 0, so glyphs
+from different fonts, weights, and variable-font instances share one frame.
+To morph a whole word as one outline, place each glyph at its pen position and
+size, then combine them:
+
+```dart
+final hi = MorphOutline.combine([
+  h.placed(Offset.zero, scale: 32),
+  i.placed(Offset(h.advance * 32, 0), scale: 32),
+])!;
+```
+
+Nothing is cached, so keep the fonts, glyphs, and plans you reuse. This API is
+experimental and may change in a minor release before 1.0.
+[morphtext](https://pub.dev/packages/morphtext) builds text morphing on it.
 
 ## Font compatibility
 
@@ -190,6 +204,16 @@ not morph arbitrary Flutter `Path` objects or SVG artwork.
 `example/example.dart` is the compact pub.dev example. The app in
 `example/lib/main.dart` powers the GitHub Pages showcase and interactive
 playground.
+
+## Built with morphnext
+
+- [morphtext](https://pub.dev/packages/morphtext) morphs text letter by
+  letter, outline into outline. A light word turns bold, a serif word turns
+  sans, and one word becomes another or flows into an icon, using the
+  [glyph outline API](#glyph-outlines).
+  [Try it in the browser](https://morphtext.drei.gg).
+
+Built something with morphnext? Open a pull request to add it here.
 
 ## License and attribution
 

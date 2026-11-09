@@ -142,6 +142,32 @@ MorphShape sampleContoursWithPointCounts(
   );
 }
 
+const _minimumOutlinePointCount = 64;
+const _maximumOutlinePointCount = 2048;
+const _samplesPerCubicSegment = 16;
+
+/// Samples a glyph outline for morphing, as icons and public glyphs share it.
+///
+/// Each contour gets 16 points per cubic segment, rounded up to a power of two
+/// between 64 and 2048, and the outline fills with the non-zero rule.
+MorphShape sampleOutlineContours(List<CubicContour> contours) =>
+    sampleContoursWithPointCounts(
+      contours,
+      pointCounts: <int>[
+        for (final contour in contours) _outlinePointCount(contour),
+      ],
+      fillRule: MorphFillRule.nonZero,
+    );
+
+int _outlinePointCount(CubicContour contour) {
+  final required = contour.segmentCount * _samplesPerCubicSegment;
+  var pointCount = _minimumOutlinePointCount;
+  while (pointCount < required && pointCount < _maximumOutlinePointCount) {
+    pointCount *= 2;
+  }
+  return pointCount;
+}
+
 /// Recomputes topology for already sampled point buffers.
 MorphShape sampledShapeFromPointBuffers(
   List<Float64List> pointBuffers, {

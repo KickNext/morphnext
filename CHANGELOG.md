@@ -9,9 +9,12 @@
 - Add `onFallback` and `MorphFallbackDetails` to both widgets for per-request
   diagnostics in debug and release, with stale-request and disposal guards.
 - Add geometry microbenchmarks and a standalone example performance harness.
-- Add `MorphFont`, `MorphGlyph` and `MorphGlyphPlan`: read a glyph's outline
-  from font bytes by code point and plan a morph between two glyphs, so
-  packages can morph beyond icons without importing `lib/src`.
+- Add an experimental glyph outline API, so packages can morph more than
+  icons without importing `lib/src`. `MorphFont` reads glyphs from TrueType or
+  CFF font bytes in ems about their pen position and baseline.
+  `MorphOutline.placed` and `MorphOutline.combine` lay glyphs out as one
+  outline, and `MorphOutlinePlan` morphs one outline into another. Thanks to
+  [Drei Guintu](https://github.com/alguintu) for the first version.
 
 ## 0.6.1
 
