@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.2
 
 - Fix morphs blowing up when a spring carries progress below 0, as
   `AnimatedMorphIcon` and `MorphOutlinePlan.interpolate` allow down to -0.25.
