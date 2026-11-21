@@ -898,7 +898,7 @@ void _applyGlobalAlignment(List<MorphPlanItem> items) {
 }
 
 void _interpolateItem(MorphPlanItem item, double t, Float64List output) {
-  final scale = math.exp(item.logScale * t);
+  final scale = _scaleAt(item.logScale, t);
   final angle = item.theta * t;
   final cosine = math.cos(angle) * scale;
   final sine = math.sin(angle) * scale;
@@ -932,6 +932,24 @@ void _interpolateItem(MorphPlanItem item, double t, Float64List output) {
     output[i] = centerX + x * cosine - y * sine;
     output[i + 1] = centerY + x * sine + y * cosine;
   }
+}
+
+/// The similarity scale at [t] of an item that scales by `exp(logScale)`.
+///
+/// Between the ends the scale is geometric, as polar interpolation needs.
+/// Past the larger end (below 0 for a contour that shrinks, above 1 for one
+/// that grows) a geometric scale grows exponentially. A contour that shrinks
+/// to a point keeps a tiny clamped scale, so at t = -0.2 its geometric scale
+/// is about 16 and the frame blows up. There the scale continues along the
+/// straight line through its ends instead, which grows no faster than the
+/// morph itself. Past the smaller end it keeps shrinking geometrically, which
+/// stays positive where the line would not.
+double _scaleAt(double logScale, double t) {
+  final geometric = math.exp(logScale * t);
+  if (t >= 0 && t <= 1) return geometric;
+  final end = math.exp(logScale);
+  if (geometric <= math.max(1.0, end)) return geometric;
+  return 1 + (end - 1) * t;
 }
 
 _Similarity _procrustesShifted(

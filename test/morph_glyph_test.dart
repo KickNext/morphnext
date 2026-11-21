@@ -279,6 +279,27 @@ void main() {
       expect(MorphOutlinePlan(from, to).isOneToOne, isFalse);
     });
 
+    test('a contour that shrinks to a point stays in scale past the ends', () {
+      // The chevron has no hole, so the square's hole shrinks to a point one
+      // way and grows from one the other. A spring carries t past both ends.
+      final square = font.glyph(TestFontBuilder.squareWithHoleCodePoint)!;
+      final chevron = font.glyph(TestFontBuilder.chevronCodePoint)!;
+      for (final (from, to) in <(MorphOutline, MorphOutline)>[
+        (square, chevron),
+        (chevron, square),
+      ]) {
+        final plan = MorphOutlinePlan(from, to);
+        final output = plan.allocateOutput();
+        final ends = from.bounds.expandToInclude(to.bounds);
+        for (final t in const <double>[-.25, -.2, -.1, 1.1, 1.25]) {
+          plan.interpolate(t, output);
+          final bounds = _boundsOf(output);
+          expect(bounds.width, lessThan(1.5 * ends.width), reason: 't = $t');
+          expect(bounds.height, lessThan(1.5 * ends.height), reason: 't = $t');
+        }
+      }
+    });
+
     test('rejects output buffers it did not allocate', () {
       final glyph = font.glyph(TestFontBuilder.chevronCodePoint)!;
       final plan = MorphOutlinePlan(glyph, glyph);
