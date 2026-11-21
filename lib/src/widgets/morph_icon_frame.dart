@@ -3,9 +3,16 @@ import 'package:flutter/widgets.dart';
 import '../font/font_selection.dart';
 import '../rendering/morph_painter.dart';
 
+/// The resolved look of a morph icon.
+///
+/// [color] is what the morph painter fills with: the requested colour with
+/// [IconThemeData.opacity] already applied. [iconColor] is the requested
+/// colour before that opacity, for the native [Icon] frames, because [Icon]
+/// applies the ambient opacity itself and would otherwise apply it twice.
 typedef MorphIconStyle = ({
   double size,
   Color color,
+  Color iconColor,
   TextDirection textDirection,
   MorphFontSelection fontSelection,
   List<Shadow>? shadows,
@@ -44,6 +51,7 @@ MorphIconStyle resolveMorphIconStyle(
     color: opacity == 1
         ? baseColor
         : baseColor.withValues(alpha: baseColor.a * opacity),
+    iconColor: baseColor,
     textDirection: direction,
     fontSelection: (
       fill: fill ?? theme.fill,
@@ -108,7 +116,7 @@ final class MorphIconFrame extends StatelessWidget {
   Widget _nativeIcon(IconData icon) => Icon(
     icon,
     size: style.size,
-    color: style.color,
+    color: style.iconColor,
     fill: style.fontSelection.fill,
     weight: style.fontSelection.weight,
     grade: style.fontSelection.grade,

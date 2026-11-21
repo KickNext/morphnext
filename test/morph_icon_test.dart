@@ -250,6 +250,44 @@ void main() {
     );
   });
 
+  testWidgets('IconTheme opacity applies once to native and painted frames', (
+    tester,
+  ) async {
+    final progress = AnimationController(vsync: tester, value: 0);
+    addTearDown(progress.dispose);
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: fixtureBundle(),
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: IconTheme(
+            data: const IconThemeData(
+              size: 24,
+              color: Color(0xcc336699),
+              opacity: 0.5,
+            ),
+            child: Center(
+              child: MorphIcon(
+                from: testQuadraticIcon,
+                to: testCompositeIcon,
+                progress: progress,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.byType(CustomPaint), findsNothing);
+    final native = nativeIconAlpha(tester);
+
+    progress.value = 0.5;
+    await tester.pumpAndSettle();
+    final painted = paintedAlpha(tester);
+
+    expect(native, closeTo(0.4, 1 / 255));
+    expect(native, closeTo(painted, 1 / 255));
+  });
+
   testWidgets('semantic label creates one image node', (tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
@@ -386,6 +424,23 @@ void main() {
     });
   }
 }
+
+/// The alpha the visible native [Icon] draws its glyph with, after [Icon]
+/// has applied the ambient [IconThemeData.opacity].
+double nativeIconAlpha(WidgetTester tester) => tester
+    .widget<RichText>(
+      find.descendant(of: find.byType(Icon), matching: find.byType(RichText)),
+    )
+    .text
+    .style!
+    .color!
+    .a;
+
+double paintedAlpha(WidgetTester tester) =>
+    (tester.widget<CustomPaint>(find.byType(CustomPaint)).painter!
+            as MorphPainter)
+        .color
+        .a;
 
 Widget testHost(AssetBundle bundle, Widget child) => DefaultAssetBundle(
   bundle: bundle,

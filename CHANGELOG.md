@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.7.2
+
+- Fix morphs blowing up when a spring carries progress below 0, as
+  `AnimatedMorphIcon` and `MorphOutlinePlan.interpolate` allow down to -0.25.
+  A contour that shrinks to a point scaled by its tiny end scale raised to a
+  negative power, about 16 times its size at -0.2, so letter morphs with
+  different contour counts grew up to 22 times larger than either end. Past
+  either end a contour's scale now continues in a straight line wherever it
+  would grow, and between the ends nothing changes.
+
+- Apply `IconThemeData.opacity` once to the native icons `MorphIcon` and
+  `AnimatedMorphIcon` show before, after and instead of a morph. They used to
+  apply it twice, so under a theme opacity of 0.5 a settled icon drew at a
+  quarter of its colour's alpha while the morph drew at half, and every
+  transition began and ended with a jump in brightness. Settled icons under a
+  theme opacity other than 1 now match Flutter's `Icon`.
+
 ## 0.7.1
 
 - `MorphOutline.placed` and `MorphOutline.combine` keep the points each glyph

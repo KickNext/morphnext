@@ -412,6 +412,53 @@ void main() {
     expect(bundle.loadCount('FontManifest.json'), 0);
   });
 
+  testWidgets('IconTheme opacity applies once to native and painted frames', (
+    tester,
+  ) async {
+    final bundle = fixtureBundle();
+    Widget sample(IconData icon) => DefaultAssetBundle(
+      bundle: bundle,
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: IconTheme(
+          data: const IconThemeData(
+            size: 24,
+            color: Color(0xff123456),
+            opacity: 0.5,
+          ),
+          child: Center(
+            child: AnimatedMorphIcon(
+              icon: icon,
+              color: const Color(0xcc336699),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(sample(testQuadraticIcon));
+    expect(find.byType(CustomPaint), findsNothing);
+    final native = tester
+        .widget<RichText>(
+          find.descendant(
+            of: find.byType(Icon),
+            matching: find.byType(RichText),
+          ),
+        )
+        .text
+        .style!
+        .color!
+        .a;
+
+    await tester.pumpWidget(sample(testCompositeIcon));
+    await pumpUntilTransitionStart(tester);
+    final painted = currentPainter(tester).color.a;
+
+    expect(native, closeTo(0.4, 1 / 255));
+    expect(native, closeTo(painted, 1 / 255));
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('semantic label is exposed as one image node', (tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
