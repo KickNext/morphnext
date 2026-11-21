@@ -111,6 +111,30 @@ void main() {
     expect(math.exp(plan.items.single.logScale), closeTo(0.01, 1e-10));
   });
 
+  test('past either end a contour grows no faster than the morph', () {
+    // A geometric scale s^t grows exponentially past the larger end. There
+    // the scale continues along the line through its ends.
+    final large = irregularLoop();
+    final small = transformContour(large, scale: 0.01);
+    final largeSize = maximumAbsoluteCoordinate(large.points);
+    final shrinking = buildMorphPlan(singleShape(large), singleShape(small));
+    final growing = buildMorphPlan(singleShape(small), singleShape(large));
+    final output = shrinking.allocateOutput();
+    double sizeAt(MorphPlan plan, double t) {
+      plan.interpolate(t, output);
+      return maximumAbsoluteCoordinate(output.single) / largeSize;
+    }
+
+    // 1 + 0.25 * (1 - 0.01), not 0.01^-0.25 = 3.16.
+    expect(sizeAt(shrinking, -0.25), closeTo(1.2475, 1e-9));
+    expect(sizeAt(growing, 1.25), closeTo(1.2475, 1e-9));
+    // Between the ends, and past the end it moves toward, a contour still
+    // scales geometrically.
+    expect(sizeAt(shrinking, 0.5), closeTo(0.1, 1e-9));
+    expect(sizeAt(shrinking, 1.25), closeTo(math.pow(0.01, 1.25), 1e-9));
+    expect(sizeAt(growing, -0.25), closeTo(math.pow(0.01, 1.25), 1e-9));
+  });
+
   test('holes match holes and a new hole grows from its parent centroid', () {
     final plan = buildMorphPlan(diskShapeWithHoles(1), diskShapeWithHoles(2));
     expect(plan.items, hasLength(3));

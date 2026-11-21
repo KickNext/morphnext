@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Fix morphs blowing up when a spring carries progress below 0, as
+  `AnimatedMorphIcon` and `MorphOutlinePlan.interpolate` allow down to -0.25.
+  A contour that shrinks to a point scaled by its tiny end scale raised to a
+  negative power, about 16 times its size at -0.2, so letter morphs with
+  different contour counts grew up to 22 times larger than either end. Past
+  either end a contour's scale now continues in a straight line wherever it
+  would grow, and between the ends nothing changes.
+
 ## 0.7.1
 
 - `MorphOutline.placed` and `MorphOutline.combine` keep the points each glyph
