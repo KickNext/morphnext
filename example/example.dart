@@ -1,3 +1,5 @@
+// Use the SDK widgets so this example runs on Flutter 3.32.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:morphnext/morphnext.dart';
 
