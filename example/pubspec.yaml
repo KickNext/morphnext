@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^2.0.0
   flutter_tabler_icons: ^1.43.0
-  flutter_svg: ^2.4.0
+  flutter_svg: ^2.5.0
   flutter_web_plugins:
     sdk: flutter
   font_awesome_flutter: ^11.0.0
